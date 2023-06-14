@@ -1,4 +1,4 @@
-package com.bervan.entities;
+package com.bervan.history.model;
 
 import java.io.Serializable;
 import java.util.Set;

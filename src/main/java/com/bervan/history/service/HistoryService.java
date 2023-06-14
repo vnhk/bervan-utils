@@ -1,5 +1,9 @@
-package com.bervan.entities;
+package com.bervan.history.service;
 
+import com.bervan.history.model.AbstractBaseEntity;
+import com.bervan.history.model.AbstractBaseHistoryEntity;
+import com.bervan.history.model.HistoryField;
+import com.bervan.history.model.Persistable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 

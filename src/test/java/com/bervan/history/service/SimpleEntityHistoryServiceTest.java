@@ -1,14 +1,16 @@
-package com.bervan.entities;
+package com.bervan.history.service;
 
+import com.bervan.history.model.AbstractBaseEntity;
+import com.bervan.history.model.AbstractBaseHistoryEntity;
+import com.bervan.history.model.HistoryField;
 import lombok.*;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.*;
 
 enum ProjectStatus {
@@ -104,10 +106,10 @@ class ProjectHistory implements AbstractBaseHistoryEntity<UUID> {
     }
 }
 
-public class SimpleEntityHistoryServiceTest {
+class SimpleEntityHistoryServiceTest {
     private HistoryService<UUID> historyService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         historyService = new HistoryService<>();
     }

@@ -1,4 +1,4 @@
-package com.bervan.entities;
+package com.bervan.history.model;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
