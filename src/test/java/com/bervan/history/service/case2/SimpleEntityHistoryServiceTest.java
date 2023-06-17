@@ -1,8 +1,9 @@
-package com.bervan.history.service;
+package com.bervan.history.service.case2;
 
 import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.model.HistoryField;
+import com.bervan.history.service.HistoryService;
 import lombok.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,100 +14,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-enum ProjectStatus {
-    OPEN, IN_PROGRESS, CLOSED, CANCELED, DONE
-}
-
-@Getter
-@Setter
-@Builder
-class Project implements AbstractBaseEntity<UUID> {
-
-    private UUID id;
-    private String name;
-    private String summary;
-    private String description;
-    private BigDecimal price;
-    private Integer importance;
-    private ProjectStatus status;
-
-    //history
-    private Set<ProjectHistory> history;
-
-    @Override
-    public Set<? extends AbstractBaseHistoryEntity<UUID>> getHistoryEntities() {
-        return history;
-    }
-
-    @Override
-    public void setHistoryEntities(Set<? extends AbstractBaseHistoryEntity<UUID>> historyEntities) {
-        this.history = (Set<ProjectHistory>) historyEntities;
-    }
-
-    @Override
-    public Class<? extends AbstractBaseHistoryEntity<UUID>> getTargetHistoryEntityClass() {
-        return ProjectHistory.class;
-    }
-
-    @Override
-    public UUID getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(UUID id) {
-        this.id = id;
-    }
-}
-
-@Getter
-@Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-class ProjectHistory implements AbstractBaseHistoryEntity<UUID> {
-    //project history id if want to save it to the database
-    private UUID id;
-    @HistoryField
-    private String name;
-    @HistoryField
-    private String summary;
-
-    //decided to not have history for description, can be removed from ProjectHistory
-    private String description;
-
-    @HistoryField
-    private BigDecimal price;
-    @HistoryField
-    private Integer importance;
-    @HistoryField
-    private ProjectStatus status;
-
-    //relation
-    private Project project;
-
-    @Override
-    public void setEntity(AbstractBaseEntity<UUID> entity) {
-        this.project = (Project) entity;
-    }
-
-    @Override
-    public AbstractBaseEntity<UUID> getEntity() {
-        return project;
-    }
-
-    @Override
-    public UUID getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(UUID id) {
-        this.id = id;
-    }
-}
-
-class SimpleEntityHistoryServiceTest {
+public class SimpleEntityHistoryServiceTest {
     private HistoryService<UUID> historyService;
 
     @BeforeEach
