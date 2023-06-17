@@ -1,15 +1,11 @@
 package com.bervan.history.service.case2;
 
-import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
-import com.bervan.history.model.HistoryField;
 import com.bervan.history.service.HistoryService;
-import lombok.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
