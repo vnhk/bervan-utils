@@ -12,13 +12,13 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@EntityListeners(OnUpdateHistoryCreator.class)
+//@EntityListeners(OnUpdateHistoryCreator.class)
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Project implements AbstractBaseEntity<UUID> {
+public class ProjectOne implements AbstractBaseEntity<UUID> {
     @Id
     @GeneratedValue
     private UUID id;
@@ -26,9 +26,9 @@ public class Project implements AbstractBaseEntity<UUID> {
     private String name;
     private String description;
     @ManyToOne
-    private User creator;
+    private UserOne creator;
     @OneToMany
-    private Set<ProjectHistory> history = new HashSet<>();
+    private Set<ProjectHistoryOne> history = new HashSet<>();
 
     @Override
     public void setId(UUID id) {
@@ -47,11 +47,11 @@ public class Project implements AbstractBaseEntity<UUID> {
 
     @Override
     public void setHistoryEntities(Collection<? extends AbstractBaseHistoryEntity<UUID>> abstractBaseHistoryEntities) {
-        this.history = (Set<ProjectHistory>) abstractBaseHistoryEntities;
+        this.history = (Set<ProjectHistoryOne>) abstractBaseHistoryEntities;
     }
 
     @Override
     public Class<? extends AbstractBaseHistoryEntity<UUID>> getTargetHistoryEntityClass() {
-        return ProjectHistory.class;
+        return ProjectHistoryOne.class;
     }
 }

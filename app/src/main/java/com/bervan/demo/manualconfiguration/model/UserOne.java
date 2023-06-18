@@ -1,6 +1,7 @@
 package com.bervan.demo.manualconfiguration.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.*;
@@ -15,13 +16,14 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User {
+public class UserOne {
     @Id
+    @GeneratedValue
     private UUID id;
     private String name;
     private String lastName;
     private String nick;
 
     @OneToMany
-    private Set<Project> createdProjects = new HashSet<>();
+    private Set<ProjectOne> createdProjects = new HashSet<>();
 }

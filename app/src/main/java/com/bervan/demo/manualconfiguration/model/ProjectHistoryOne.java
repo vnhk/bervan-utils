@@ -1,32 +1,37 @@
 package com.bervan.demo.manualconfiguration.model;
 
-import com.bervan.demo.OnUpdateHistoryCreator;
 import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
-import jakarta.persistence.*;
+import com.bervan.history.model.HistoryField;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import lombok.*;
 
 import java.util.UUID;
 
 @Entity
-@EntityListeners(OnUpdateHistoryCreator.class)
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ProjectHistory implements AbstractBaseHistoryEntity<UUID> {
+public class ProjectHistoryOne implements AbstractBaseHistoryEntity<UUID> {
     @Id
     @GeneratedValue
     private UUID id;
 
+    @HistoryField
     private String name;
+
+    //ignored
     private String description;
 
+    @HistoryField(savePath = "creator.id")
+    private UUID creator;
     @ManyToOne
-    private User creator;
-    @ManyToOne
-    private Project project;
+    private ProjectOne project;
 
     @Override
     public void setId(UUID id) {
@@ -40,7 +45,7 @@ public class ProjectHistory implements AbstractBaseHistoryEntity<UUID> {
 
     @Override
     public void setEntity(AbstractBaseEntity<UUID> entity) {
-        this.project = (Project) entity;
+        this.project = (ProjectOne) entity;
     }
 
     @Override
