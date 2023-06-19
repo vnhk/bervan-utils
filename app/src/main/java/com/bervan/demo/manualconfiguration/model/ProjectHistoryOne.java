@@ -3,6 +3,7 @@ package com.bervan.demo.manualconfiguration.model;
 import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.model.HistoryField;
+import com.bervan.history.model.HistorySupported;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@HistorySupported
 public class ProjectHistoryOne implements AbstractBaseHistoryEntity<UUID> {
     @Id
     @GeneratedValue
