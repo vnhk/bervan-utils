@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public interface AbstractBaseEntity<ID> extends Serializable, Persistable<ID> {
     default Collection<? extends AbstractBaseHistoryEntity<ID>> getHistoryEntities() {
-        Field field = getHistoryCollectionField(this);
+        Field field = getHistoryCollectionField();
 
         try {
             field.setAccessible(true);
@@ -22,7 +22,7 @@ public interface AbstractBaseEntity<ID> extends Serializable, Persistable<ID> {
     }
 
     default void setHistoryEntities(Collection<? extends AbstractBaseHistoryEntity<ID>> historyEntities) {
-        Field field = getHistoryCollectionField(this);
+        Field field = getHistoryCollectionField();
 
         try {
             field.setAccessible(true);
@@ -35,14 +35,12 @@ public interface AbstractBaseEntity<ID> extends Serializable, Persistable<ID> {
     }
 
     default Class<? extends AbstractBaseHistoryEntity<ID>> getTargetHistoryEntityClass() {
-        Field field = getHistoryCollectionField(this);
+        Field field = getHistoryCollectionField();
         return (Class<? extends AbstractBaseHistoryEntity<ID>>) field.getAnnotation(HistoryCollection.class).historyClass();
     }
 
-    default Field getHistoryCollectionField(AbstractBaseEntity<ID> entity) {
-        List<Field> fields = Arrays.stream(entity.getClass().getDeclaredFields())
-                .filter(e -> e.isAnnotationPresent(HistoryCollection.class))
-                .collect(Collectors.toList());
+    default Field getHistoryCollectionField() {
+        List<Field> fields = getFieldsAnnotatedWithHistoryCollection();
 
         if (fields.size() != 1) {
             throw new RuntimeException("Could not find field for history! " +
@@ -51,5 +49,11 @@ public interface AbstractBaseEntity<ID> extends Serializable, Persistable<ID> {
         }
 
         return fields.get(0);
+    }
+
+    default List<Field> getFieldsAnnotatedWithHistoryCollection() {
+        return Arrays.stream(this.getClass().getDeclaredFields())
+                .filter(e -> e.isAnnotationPresent(HistoryCollection.class))
+                .collect(Collectors.toList());
     }
 }
