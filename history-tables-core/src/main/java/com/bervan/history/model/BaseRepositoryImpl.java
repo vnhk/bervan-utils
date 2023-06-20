@@ -1,12 +1,12 @@
 package com.bervan.history.model;
 
 import com.bervan.history.service.HistoryService;
-import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.io.Serializable;
 import java.util.Optional;
 
@@ -17,10 +17,11 @@ public class BaseRepositoryImpl<T extends AbstractBaseEntity<ID>, ID extends Ser
 
     private final EntityManager entityManager;
 
-    public BaseRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
+    public BaseRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, javax.persistence.EntityManager entityManager) {
         super(entityInformation, entityManager);
         this.entityManager = entityManager;
     }
+
 
     @Override
     public <S extends T> S save(S entity) {
