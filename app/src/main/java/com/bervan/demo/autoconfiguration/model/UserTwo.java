@@ -7,7 +7,7 @@ import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
 
 @Entity
 @Getter
@@ -15,10 +15,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserTwo implements AbstractBaseEntity<UUID> {
+public class UserTwo implements AbstractBaseEntity<Long> {
     @Id
     @GeneratedValue
-    private UUID id;
+    private Long id;
     private String name;
     private String lastName;
     private String nick;

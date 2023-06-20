@@ -1,17 +1,15 @@
 package com.bervan.demo.manualconfiguration.model;
 
-import com.bervan.demo.OnUpdateHistoryCreator;
 import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.model.HistorySupported;
-import javax.persistence.*;
-
 import lombok.*;
 
+import javax.persistence.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
 
 @Entity
 //@EntityListeners(OnUpdateHistoryCreator.class)
@@ -21,40 +19,41 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @HistorySupported
-public class ProjectOne implements AbstractBaseEntity<UUID> {
+public class ProjectOne implements AbstractBaseEntity<Long> {
     @Id
     @GeneratedValue
-    private UUID id;
+    private Long id;
 
     private String name;
     private String description;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "creator_id")
     private UserOne creator;
-    @OneToMany
+    @OneToMany(mappedBy = "project", fetch = FetchType.EAGER)
     private Set<ProjectHistoryOne> history = new HashSet<>();
 
     @Override
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     @Override
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
     @Override
-    public Set<? extends AbstractBaseHistoryEntity<UUID>> getHistoryEntities() {
+    public Set<? extends AbstractBaseHistoryEntity<Long>> getHistoryEntities() {
         return history;
     }
 
     @Override
-    public void setHistoryEntities(Collection<? extends AbstractBaseHistoryEntity<UUID>> abstractBaseHistoryEntities) {
+    public void setHistoryEntities(Collection<? extends AbstractBaseHistoryEntity<Long>> abstractBaseHistoryEntities) {
         this.history = (Set<ProjectHistoryOne>) abstractBaseHistoryEntities;
     }
 
     @Override
-    public Class<? extends AbstractBaseHistoryEntity<UUID>> getTargetHistoryEntityClass() {
+    public Class<? extends AbstractBaseHistoryEntity<Long>> getTargetHistoryEntityClass() {
         return ProjectHistoryOne.class;
     }
 }

@@ -8,7 +8,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
 
 @Entity
 //@EntityListeners(OnUpdateHistoryCreator.class)
@@ -18,10 +18,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @HistorySupported
-public class ProjectTwo implements AbstractBaseEntity<UUID> {
+public class ProjectTwo implements AbstractBaseEntity<Long> {
     @Id
     @GeneratedValue
-    private UUID id;
+    private Long id;
 
     private String name;
     private String description;
@@ -32,12 +32,12 @@ public class ProjectTwo implements AbstractBaseEntity<UUID> {
     private Set<ProjectHistoryTwo> history = new HashSet<>();
 
     @Override
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     @Override
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 }

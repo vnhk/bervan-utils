@@ -8,7 +8,7 @@ import javax.persistence.*;
 
 import lombok.*;
 
-import java.util.UUID;
+
 
 @Entity
 @Getter
@@ -17,10 +17,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @HistorySupported
-public class ProjectHistoryTwo implements AbstractBaseHistoryEntity<UUID> {
+public class ProjectHistoryTwo implements AbstractBaseHistoryEntity<Long> {
     @Id
     @GeneratedValue
-    private UUID id;
+    private Long id;
 
     @HistoryField
     private String name;
@@ -29,18 +29,18 @@ public class ProjectHistoryTwo implements AbstractBaseHistoryEntity<UUID> {
     private String description;
 
     @HistoryField(savePath = "creator.id")
-    private UUID creator;
+    private Long creator;
     @ManyToOne
     @HistoryOwnerEntity
     private ProjectTwo project;
 
     @Override
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     @Override
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 }
