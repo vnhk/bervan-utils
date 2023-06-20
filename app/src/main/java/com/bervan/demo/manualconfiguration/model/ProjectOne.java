@@ -4,7 +4,8 @@ import com.bervan.demo.OnUpdateHistoryCreator;
 import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.model.HistorySupported;
-import jakarta.persistence.*;
+import javax.persistence.*;
+
 import lombok.*;
 
 import java.util.Collection;

@@ -6,8 +6,8 @@ import com.bervan.demo.autoconfiguration.model.UserTwo;
 import com.bervan.demo.autoconfiguration.repo.ProjectHistoryTwoRepository;
 import com.bervan.demo.autoconfiguration.repo.ProjectTwoRepositoryCustom;
 import com.bervan.demo.autoconfiguration.repo.UserTwoRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
+import javax.persistence.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

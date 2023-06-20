@@ -4,10 +4,8 @@ import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.model.HistoryField;
 import com.bervan.history.model.HistorySupported;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import javax.persistence.*;
+
 import lombok.*;
 
 import java.util.UUID;

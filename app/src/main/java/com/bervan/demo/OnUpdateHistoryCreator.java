@@ -3,11 +3,10 @@ package com.bervan.demo;
 import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.service.HistoryService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PreUpdate;
 
 @Service
 public class OnUpdateHistoryCreator<ID> {

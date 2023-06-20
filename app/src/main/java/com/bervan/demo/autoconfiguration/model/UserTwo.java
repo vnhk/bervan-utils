@@ -1,10 +1,8 @@
 package com.bervan.demo.autoconfiguration.model;
 
 import com.bervan.history.model.AbstractBaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import javax.persistence.*;
+
 import lombok.*;
 
 import java.util.HashSet;

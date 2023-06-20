@@ -3,9 +3,9 @@ package com.bervan.demo.autoconfiguration.model;
 import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.HistoryCollection;
 import com.bervan.history.model.HistorySupported;
-import jakarta.persistence.*;
 import lombok.*;
 
+import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;

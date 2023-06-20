@@ -7,8 +7,8 @@ import com.bervan.demo.manualconfiguration.repo.ProjectHistoryOneRepository;
 import com.bervan.demo.manualconfiguration.repo.ProjectOneRepositoryCustom;
 import com.bervan.demo.manualconfiguration.repo.UserOneRepository;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
+import javax.persistence.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
