@@ -1,22 +1,20 @@
 package com.bervan.dtocore.model;
 
-
 import lombok.*;
 
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-@Getter
+@NoArgsConstructor
+@Builder
 @Setter
-public class BookDTO implements BaseDTO<Long>{
+@Getter
+public class AuthorDTO implements BaseDTO<Long> {
     private Long id;
-    private String name;
-    private String summary;
-    private AuthorDTO author;
+    private String firstName;
+    private String lastName;
 
     @Override
-    public void setId(Long id) {
-        this.id = id;
+    public void setId(Long aLong) {
+        this.id = aLong;
     }
 
     @Override
@@ -26,6 +24,6 @@ public class BookDTO implements BaseDTO<Long>{
 
     @Override
     public Class<? extends BaseDTOTarget<Long>> dtoTarget() {
-        return Book.class;
+        return Author.class;
     }
 }

@@ -13,6 +13,7 @@ public class Book implements BaseDTOTarget<Long> {
     private String name;
     private String summary;
     private String secureField; //no field in DTO
+    private Author author; //complex object with DTO
 
     @Override
     public Long getId() {

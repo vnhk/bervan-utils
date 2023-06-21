@@ -52,31 +52,65 @@ public class DTOMapper {
         BaseDTO<ID> dto = dtoClass.getDeclaredConstructor().newInstance();
 
         Field[] dtoFields = dtoClass.getDeclaredFields();
-        for (Field declaredField : dtoTarget.getClass().getDeclaredFields()) {
-            String name = declaredField.getName();
-            Class<?> dtoTargetFieldType = declaredField.getType();
+        for (Field fromField : dtoTarget.getClass().getDeclaredFields()) {
+            String name = fromField.getName();
+            Class<?> dtoTargetFieldType = fromField.getType();
             Optional<Field> dtoFieldWithTheSameName =
                     Arrays.stream(dtoFields).filter(e -> e.getName().equals(name)).findFirst();
 
             if (dtoFieldWithTheSameName.isPresent()) {
-                Field field = dtoFieldWithTheSameName.get();
-                Class<?> dtoFieldType = field.getType();
+                Field toField = dtoFieldWithTheSameName.get();
+                Class<?> dtoFieldType = toField.getType();
                 Optional<? extends CustomMapper> customMapper = findCustomMapper(dtoTargetFieldType, dtoFieldType);
                 Object value = null;
                 if (customMapper.isPresent()) {
-                    value = customMapper.get().map(dtoTarget, declaredField);
+                    value = customMapper.get().map(dtoTarget, fromField);
+                } else if (shouldBeMappedToDTO(dtoTarget, fromField, toField)) {
+                    value = simpleReceivingValue(dtoTarget, fromField);
+                    value = map((BaseDTOTarget) value);
                 } else {
-                    declaredField.setAccessible(true);
-                    value = declaredField.get(dtoTarget);
-                    declaredField.setAccessible(false);
+                    value = simpleReceivingValue(dtoTarget, fromField);
                 }
-                field.setAccessible(true);
-                field.set(dto, value);
-                field.setAccessible(false);
+                setValue(dto, toField, value);
             }
         }
 
         return dto;
+    }
+
+    /**
+     * @param fromBaseObject BaseDTOTarget object that map() was executed for
+     * @param fromField      Field in BaseDTOTarget object
+     * @param toField        Field in DTO class related with BaseDTOTargetObject
+     *                       Method checks whether the fromField is not null BaseDTOTarget related with toField DTO type in order to run map()
+     *                       that will map fromField to toField
+     * @return true/false
+     * @throws IllegalAccessException
+     */
+    private boolean shouldBeMappedToDTO(BaseDTOTarget fromBaseObject, Field fromField, Field toField) throws IllegalAccessException {
+        if (BaseDTOTarget.class.isAssignableFrom(fromField.getType())
+                && BaseDTO.class.isAssignableFrom(toField.getType())) {
+            fromField.setAccessible(true);
+            BaseDTOTarget from = ((BaseDTOTarget) fromField.get(fromBaseObject));
+            fromField.setAccessible(false);
+
+            return from != null && toField.getAnnotatedType().getType().equals(from.dto());
+        }
+
+        return false;
+    }
+
+    private <ID> void setValue(BaseDTO<ID> dto, Field toField, Object value) throws IllegalAccessException {
+        toField.setAccessible(true);
+        toField.set(dto, value);
+        toField.setAccessible(false);
+    }
+
+    private <ID> Object simpleReceivingValue(BaseDTOTarget<ID> dtoTarget, Field declaredField) throws IllegalAccessException {
+        declaredField.setAccessible(true);
+        Object value = declaredField.get(dtoTarget);
+        declaredField.setAccessible(false);
+        return value;
     }
 
     private Optional<? extends CustomMapper> findCustomMapper(Class<?> from, Class<?> to) {
