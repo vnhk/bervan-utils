@@ -71,7 +71,7 @@ public class DTOMapper {
                     declaredField.setAccessible(false);
                 }
                 field.setAccessible(true);
-                declaredField.set(dto, value);
+                field.set(dto, value);
                 field.setAccessible(false);
             }
         }
