@@ -1,5 +1,7 @@
-package com.bervan.dtocore.model;
+package com.bervan.dtocore.c1;
 
+import com.bervan.dtocore.model.BaseDTO;
+import com.bervan.dtocore.model.BaseDTOTarget;
 import lombok.*;
 
 @Getter

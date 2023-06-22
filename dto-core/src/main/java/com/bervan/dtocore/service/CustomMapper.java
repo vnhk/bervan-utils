@@ -1,10 +1,8 @@
 package com.bervan.dtocore.service;
 
-import java.lang.reflect.Field;
-
 public interface CustomMapper<FROM, TO> {
 
-    TO map(FROM from, Field field);
+    TO map(FROM from);
 
     Class<FROM> getFrom();
 

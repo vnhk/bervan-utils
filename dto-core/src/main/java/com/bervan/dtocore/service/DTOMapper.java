@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class DTOMapper {
     private final List<? extends CustomMapper> customMappers;
     private static final ObjectMapper objectMapper = getObjectMapper();
@@ -49,33 +51,51 @@ public class DTOMapper {
     public <ID> BaseDTO<ID> map(BaseDTOTarget<ID> dtoTarget) throws Exception {
         Class<? extends BaseDTO<ID>> dtoClass = dtoTarget.dto();
         //add better exception handling with logs...
-        BaseDTO<ID> dto = dtoClass.getDeclaredConstructor().newInstance();
+        BaseDTO<ID> dto = initDTO(dtoClass);
 
         Field[] dtoFields = dtoClass.getDeclaredFields();
         for (Field fromField : dtoTarget.getClass().getDeclaredFields()) {
-            String name = fromField.getName();
-            Class<?> dtoTargetFieldType = fromField.getType();
-            Optional<Field> dtoFieldWithTheSameName =
-                    Arrays.stream(dtoFields).filter(e -> e.getName().equals(name)).findFirst();
-
-            if (dtoFieldWithTheSameName.isPresent()) {
-                Field toField = dtoFieldWithTheSameName.get();
-                Class<?> dtoFieldType = toField.getType();
-                Optional<? extends CustomMapper> customMapper = findCustomMapper(dtoTargetFieldType, dtoFieldType);
-                Object value = null;
-                if (customMapper.isPresent()) {
-                    value = customMapper.get().map(dtoTarget, fromField);
-                } else if (shouldBeMappedToDTO(dtoTarget, fromField, toField)) {
-                    value = simpleReceivingValue(dtoTarget, fromField);
-                    value = map((BaseDTOTarget) value);
-                } else {
-                    value = simpleReceivingValue(dtoTarget, fromField);
-                }
-                setValue(dto, toField, value);
-            }
+            processField(dtoTarget, dto, dtoFields, fromField);
         }
 
         return dto;
+    }
+
+    private BaseDTO initDTO(Class<? extends BaseDTO> dtoClass) {
+        try {
+            return dtoClass.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            log.error("DTO must have no args public constructor!", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private <ID> void processField(BaseDTOTarget<ID> dtoTarget, BaseDTO<ID> dto, Field[] dtoFields, Field fromField) throws Exception {
+        String name = fromField.getName();
+        Class<?> dtoTargetFieldType = fromField.getType();
+        Optional<Field> dtoFieldWithTheSameName = getDtoFieldWithTheSameName(dtoFields, name);
+
+        if (dtoFieldWithTheSameName.isPresent()) {
+            Field toField = dtoFieldWithTheSameName.get();
+            Class<?> dtoFieldType = toField.getType();
+            Optional<? extends CustomMapper> customMapper = findCustomMapper(dtoTargetFieldType, dtoFieldType);
+            Object value = simpleReceivingValue(dtoTarget, fromField);
+            if (shouldBeMappedWithCustomMapper(customMapper, value)) {
+                value = customMapper.get().map(value);
+            } else if (shouldBeMappedToDTO(dtoTarget, fromField, toField)) {
+                value = map((BaseDTOTarget) value);
+            }
+
+            setValue(dto, toField, value);
+        }
+    }
+
+    private boolean shouldBeMappedWithCustomMapper(Optional<? extends CustomMapper> customMapper, Object value) {
+        return customMapper.isPresent() && value != null;
+    }
+
+    private Optional<Field> getDtoFieldWithTheSameName(Field[] dtoFields, String name) {
+        return Arrays.stream(dtoFields).filter(e -> e.getName().equals(name)).findFirst();
     }
 
     /**

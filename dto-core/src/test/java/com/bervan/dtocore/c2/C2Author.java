@@ -1,6 +1,8 @@
-package com.bervan.dtocore.model;
+package com.bervan.dtocore.c2;
 
 
+import com.bervan.dtocore.model.BaseDTO;
+import com.bervan.dtocore.model.BaseDTOTarget;
 import lombok.*;
 
 @AllArgsConstructor
@@ -8,7 +10,7 @@ import lombok.*;
 @Builder
 @Setter
 @Getter
-public class Author implements BaseDTOTarget<Long> {
+public class C2Author implements BaseDTOTarget<Long> {
     private Long id;
     private String firstName;
     private String lastName;
@@ -25,7 +27,7 @@ public class Author implements BaseDTOTarget<Long> {
 
     @Override
     public Class<? extends BaseDTO<Long>> dto() {
-        return AuthorDTO.class;
+        return C2AuthorDTO.class;
     }
 
 }
