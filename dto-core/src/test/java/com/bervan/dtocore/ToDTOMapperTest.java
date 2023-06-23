@@ -4,15 +4,10 @@ import com.bervan.dtocore.c1.Author;
 import com.bervan.dtocore.c1.AuthorDTO;
 import com.bervan.dtocore.c1.Book;
 import com.bervan.dtocore.c1.BookDTO;
-import com.bervan.dtocore.c2.C2Author;
-import com.bervan.dtocore.c2.C2AuthorMapper;
-import com.bervan.dtocore.c2.C2Book;
-import com.bervan.dtocore.c2.C2BookDTO;
-import com.bervan.dtocore.fieldmapper.C3Author;
-import com.bervan.dtocore.fieldmapper.C3Book;
-import com.bervan.dtocore.fieldmapper.C3BookDTO;
-import com.bervan.dtocore.fieldmapper.DefaultC3AuthorCustomMapper;
+import com.bervan.dtocore.c2.*;
+import com.bervan.dtocore.fieldmapper.*;
 import com.bervan.dtocore.model.BaseDTO;
+import com.bervan.dtocore.model.BaseDTOTarget;
 import com.bervan.dtocore.service.DTOMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @ExtendWith(SpringExtension.class)
-class MapperTest {
+class ToDTOMapperTest {
     private DTOMapper dtoMapper;
 
     @BeforeEach
@@ -65,6 +60,36 @@ class MapperTest {
     }
 
     @Test
+    public void simpleMapToDTOTargetWithSkippingField() throws Exception {
+        AuthorDTO author = AuthorDTO.builder()
+                .id(75L)
+                .firstName("Jon")
+                .lastName("Smith")
+                .build();
+
+        BookDTO book = BookDTO.builder()
+                .id(10L)
+                .name("Name 1")
+                .summary("Summary 1")
+                .author(author)
+                .anotherSecuredField("Should not be copied, because DTO Target has no field with that name")
+                .build();
+
+        BaseDTOTarget<Long> map = dtoMapper.map(book);
+
+        assertTrue(map instanceof Book);
+        assertEquals(map.getId(), book.getId());
+        assertEquals(((Book) map).getName(), book.getName());
+        assertEquals(((Book) map).getSummary(), book.getSummary());
+
+        Author authorRes = ((Book) map).getAuthor();
+
+        assertEquals(author.getId(), authorRes.getId());
+        assertEquals(author.getFirstName(), authorRes.getFirstName());
+        assertEquals(author.getLastName(), authorRes.getLastName());
+    }
+
+    @Test
     public void simpleMapToDTOWithNullableBaseFields() throws Exception {
         Author author = Author.builder()
                 .id(75L)
@@ -88,6 +113,36 @@ class MapperTest {
         assertEquals(((BookDTO) map).getSummary(), book.getSummary());
 
         AuthorDTO authorDTO = ((BookDTO) map).getAuthor();
+
+        assertEquals(authorDTO.getId(), author.getId());
+        assertEquals(authorDTO.getFirstName(), author.getFirstName());
+        assertEquals(authorDTO.getLastName(), author.getLastName());
+    }
+
+    @Test
+    public void simpleMapToDTOTargetWithNullableBaseFields() throws Exception {
+        AuthorDTO authorDTO = AuthorDTO.builder()
+                .id(75L)
+                .firstName(null)
+                .lastName("Smith")
+                .build();
+
+        BookDTO bookDTO = BookDTO.builder()
+                .id(null)
+                .name("Name 1")
+                .summary(null)
+                .author(authorDTO)
+                .anotherSecuredField(null)
+                .build();
+
+        BaseDTOTarget<Long> map = dtoMapper.map(bookDTO);
+
+        assertTrue(map instanceof Book);
+        assertEquals(map.getId(), bookDTO.getId());
+        assertEquals(((Book) map).getName(), bookDTO.getName());
+        assertEquals(((Book) map).getSummary(), bookDTO.getSummary());
+
+        Author author = ((Book) map).getAuthor();
 
         assertEquals(authorDTO.getId(), author.getId());
         assertEquals(authorDTO.getFirstName(), author.getFirstName());
@@ -120,7 +175,31 @@ class MapperTest {
     }
 
     @Test
-    public void mapUsingCustomMapperWhenValueToBeMappedIsNull() throws Exception {
+    public void simpleMapToDTOTargetWithNullableInnerTargetDTOFields() throws Exception {
+        AuthorDTO authorDto = null;
+
+        BookDTO bookDto = BookDTO.builder()
+                .id(null)
+                .name("Name 1")
+                .summary(null)
+                .author(authorDto)
+                .anotherSecuredField(null)
+                .build();
+
+        BaseDTOTarget<Long> map = dtoMapper.map(bookDto);
+
+        assertTrue(map instanceof Book);
+        assertEquals(map.getId(), bookDto.getId());
+        assertEquals(((Book) map).getName(), bookDto.getName());
+        assertEquals(((Book) map).getSummary(), bookDto.getSummary());
+
+        Author author = ((Book) map).getAuthor();
+
+        assertNull(author);
+    }
+
+    @Test
+    public void mapToDTOUsingCustomMapperWhenValueToBeMappedIsNull() throws Exception {
         C2Author author = null;
 
         dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorMapper()));
@@ -143,6 +222,55 @@ class MapperTest {
         Long authorId = ((C2BookDTO) map).getAuthor();
 
         assertNull(authorId);
+    }
+
+    @Test
+    public void mapToTargetDTOUsingCustomMapperWhenValueToBeMappedIsNull() throws Exception {
+        C2AuthorDTO author = null;
+
+        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorDTOMapper()));
+
+        C2BookDTO book = C2BookDTO.builder()
+                .id(null)
+                .name("Name 1")
+                .summary(null)
+                .author(null)
+                .build();
+
+        BaseDTOTarget<Long> map = dtoMapper.map(book);
+
+        assertTrue(map instanceof C2Book);
+        assertEquals(map.getId(), book.getId());
+        assertEquals(((C2Book) map).getName(), book.getName());
+        assertEquals(((C2Book) map).getSummary(), book.getSummary());
+
+        C2Author resAuthor = ((C2Book) map).getAuthor();
+
+        assertNull(resAuthor);
+    }
+
+    @Test
+    public void mapToTargetDTOUsingCustomMapperWhenValueToBeMapped() throws Exception {
+        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorDTOMapper()));
+
+        C2BookDTO book = C2BookDTO.builder()
+                .id(null)
+                .name("Name 1")
+                .summary(null)
+                .author(152L)
+                .build();
+
+        BaseDTOTarget<Long> map = dtoMapper.map(book);
+
+        assertTrue(map instanceof C2Book);
+        assertEquals(map.getId(), book.getId());
+        assertEquals(((C2Book) map).getName(), book.getName());
+        assertEquals(((C2Book) map).getSummary(), book.getSummary());
+
+        C2Author resAuthor = ((C2Book) map).getAuthor();
+
+        assertNotNull(resAuthor);
+        assertEquals(resAuthor.getId(), 152L);
     }
 
     @Test
@@ -172,10 +300,33 @@ class MapperTest {
     }
 
     @Test
-    public void mapUsingFieldMapperWithExistingDefaultMapper() throws Exception {
+    public void mapToTargetDTOUsingFieldMapperWithExistingDefaultMapper() throws Exception {
+        dtoMapper = new DTOMapper(Arrays.asList(new DefaultC3AuthorCustomMapper(), new DefaultC3StringToAuthorCustomMapper()));
+
+        C3BookDTO book = C3BookDTO.builder()
+                .id(null)
+                .name("Name 1")
+                .summary(null)
+                .author("John Snow")
+                .build();
+
+        BaseDTOTarget<Long> map = dtoMapper.map(book);
+
+        assertTrue(map instanceof C3Book);
+        assertEquals(map.getId(), book.getId());
+        assertEquals(((C3Book) map).getName(), "Name 1");
+        assertEquals(((C3Book) map).getSummary(), book.getSummary());
+
+        C3Author authorDetails = ((C3Book) map).getAuthor();
+
+        assertNotNull(authorDetails);
+    }
+
+    @Test
+    public void mapToDTOUsingFieldMapperWithExistingDefaultMapper() throws Exception {
         C3Author author = C3Author.builder().id(150L).firstName("John").lastName("Snow").build();
 
-        dtoMapper = new DTOMapper(Arrays.asList(new DefaultC3AuthorCustomMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new DefaultC3AuthorCustomMapper(), new DefaultC3StringToAuthorCustomMapper()));
 
         C3Book book = C3Book.builder()
                 .id(null)

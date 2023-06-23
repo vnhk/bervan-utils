@@ -3,6 +3,7 @@ package com.bervan.dtocore.fieldmapper;
 
 import com.bervan.dtocore.model.BaseDTO;
 import com.bervan.dtocore.model.BaseDTOTarget;
+import com.bervan.dtocore.model.FieldCustomMapper;
 import lombok.*;
 
 @Builder
@@ -14,6 +15,7 @@ public class C3BookDTO implements BaseDTO<Long> {
     private Long id;
     private String name;
     private String summary;
+    @FieldCustomMapper(mapper = BasicInfoC3AuthorDTOMapper.class)
     private String author;
 
     @Override

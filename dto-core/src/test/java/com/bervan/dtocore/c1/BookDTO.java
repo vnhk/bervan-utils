@@ -15,6 +15,8 @@ public class BookDTO implements BaseDTO<Long> {
     private String name;
     private String summary;
     private AuthorDTO author;
+    private String anotherSecuredField; //no field in DTO Target
+
 
     @Override
     public void setId(Long id) {

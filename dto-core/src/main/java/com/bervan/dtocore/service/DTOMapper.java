@@ -1,7 +1,6 @@
 package com.bervan.dtocore.service;
 
 import com.bervan.dtocore.model.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -49,7 +48,6 @@ public class DTOMapper {
 
     public <ID> BaseDTO<ID> map(BaseDTOTarget<ID> dtoTarget) throws Exception {
         Class<? extends BaseDTO<ID>> dtoClass = dtoTarget.dto();
-        //add better exception handling with logs...
         BaseDTO<ID> dto = initDTO(dtoClass);
 
         Field[] dtoFields = dtoClass.getDeclaredFields();
@@ -58,6 +56,18 @@ public class DTOMapper {
         }
 
         return dto;
+    }
+
+    public <ID> BaseDTOTarget<ID> map(BaseDTO<ID> dto) throws Exception {
+        Class<? extends BaseDTOTarget<ID>> dtoTargetClass = dto.dtoTarget();
+        BaseDTOTarget<ID> targetDTO = initTargetDTO(dtoTargetClass);
+
+        Field[] dtoTargetFields = dtoTargetClass.getDeclaredFields();
+        for (Field fromField : dto.getClass().getDeclaredFields()) {
+            processField(dto, targetDTO, dtoTargetFields, fromField);
+        }
+
+        return targetDTO;
     }
 
     private BaseDTO initDTO(Class<? extends BaseDTO> dtoClass) {
@@ -69,23 +79,36 @@ public class DTOMapper {
         }
     }
 
-    private <ID> void processField(BaseDTOTarget<ID> dtoTarget, BaseDTO<ID> dto, Field[] dtoFields, Field fromField) throws Exception {
-        String name = fromField.getName();
-        Class<?> dtoTargetFieldType = fromField.getType();
-        Optional<Field> dtoFieldWithTheSameName = getDtoFieldWithTheSameName(dtoFields, name);
+    private BaseDTOTarget initTargetDTO(Class<? extends BaseDTOTarget> dtoTargetClass) {
+        try {
+            return dtoTargetClass.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            log.error("Target DTO must have no args public constructor!", e);
+            throw new RuntimeException(e);
+        }
+    }
 
-        if (dtoFieldWithTheSameName.isPresent()) {
-            Field toField = dtoFieldWithTheSameName.get();
+    private void processField(Object from, Object to, Field[] toFields, Field fromField) throws Exception {
+        String name = fromField.getName();
+        Class<?> fromFieldType = fromField.getType();
+        Optional<Field> toFieldWithTheSameName = getToFieldWithTheSameName(toFields, name);
+
+        if (toFieldWithTheSameName.isPresent()) {
+            Field toField = toFieldWithTheSameName.get();
             Class<?> dtoFieldType = toField.getType();
-            Optional<? extends CustomMapper> customMapper = findCustomMapper(fromField, dtoTargetFieldType, dtoFieldType);
-            Object value = simpleReceivingValue(dtoTarget, fromField);
+            Optional<? extends CustomMapper> customMapper = findCustomMapper(fromField, fromFieldType, dtoFieldType);
+            Object value = simpleReceivingValue(from, fromField);
             if (shouldBeMappedWithCustomMapper(customMapper, value)) {
                 value = customMapper.get().map(value);
-            } else if (shouldBeMappedToDTO(dtoTarget, fromField, toField)) {
-                value = map((BaseDTOTarget) value);
+            } else if (shouldExecuteMap(from, fromField, toField)) {
+                if (value instanceof BaseDTO) {
+                    value = map(((BaseDTO<?>) value));
+                } else {
+                    value = map(((BaseDTOTarget) value));
+                }
             }
 
-            setValue(dto, toField, value);
+            setValue(to, toField, value);
         }
     }
 
@@ -93,41 +116,55 @@ public class DTOMapper {
         return customMapper.isPresent() && value != null;
     }
 
-    private Optional<Field> getDtoFieldWithTheSameName(Field[] dtoFields, String name) {
+    private Optional<Field> getToFieldWithTheSameName(Field[] dtoFields, String name) {
         return Arrays.stream(dtoFields).filter(e -> e.getName().equals(name)).findFirst();
     }
 
     /**
-     * @param fromBaseObject BaseDTOTarget object that map() was executed for
-     * @param fromField      Field in BaseDTOTarget object
-     * @param toField        Field in DTO class related with BaseDTOTargetObject
-     *                       Method checks whether the fromField is not null BaseDTOTarget related with toField DTO type in order to run map()
-     *                       that will map fromField to toField
+     * @param fromObj   Object that map() was executed for
+     * @param fromField Field in the fromObj
+     * @param toField   Field in class related with fromObj
+     *                  Method checks whether the fromField should be mapped using map()
+     *                  with recursion to DTO or TargetDTO class
      * @return true/false
      * @throws IllegalAccessException
      */
-    private boolean shouldBeMappedToDTO(BaseDTOTarget fromBaseObject, Field fromField, Field toField) throws IllegalAccessException {
-        if (BaseDTOTarget.class.isAssignableFrom(fromField.getType())
-                && BaseDTO.class.isAssignableFrom(toField.getType())) {
-            fromField.setAccessible(true);
-            BaseDTOTarget from = ((BaseDTOTarget) fromField.get(fromBaseObject));
-            fromField.setAccessible(false);
-
-            return from != null && toField.getAnnotatedType().getType().equals(from.dto());
+    private boolean shouldExecuteMap(Object fromObj, Field fromField, Field toField) throws IllegalAccessException {
+        if (BaseDTOTarget.class.isAssignableFrom(fromField.getType()) && BaseDTO.class.isAssignableFrom(toField.getType())) {
+            return shouldBeMappedToDTO(fromObj, fromField, toField);
+        } else if (BaseDTO.class.isAssignableFrom(fromField.getType()) && BaseDTOTarget.class.isAssignableFrom(toField.getType())) {
+            return shouldBeMappedToDTOTarget(fromObj, fromField, toField);
         }
 
         return false;
     }
 
-    private <ID> void setValue(BaseDTO<ID> dto, Field toField, Object value) throws IllegalAccessException {
+    private boolean shouldBeMappedToDTO(Object fromObj, Field fromField, Field toField) throws IllegalAccessException {
+        fromField.setAccessible(true);
+        BaseDTOTarget from = ((BaseDTOTarget) fromField.get(fromObj));
+        fromField.setAccessible(false);
+
+        return from != null && toField.getAnnotatedType().getType().equals(from.dto());
+    }
+
+
+    private boolean shouldBeMappedToDTOTarget(Object fromObj, Field fromField, Field toField) throws IllegalAccessException {
+        fromField.setAccessible(true);
+        BaseDTO from = ((BaseDTO) fromField.get(fromObj));
+        fromField.setAccessible(false);
+
+        return from != null && toField.getAnnotatedType().getType().equals(from.dtoTarget());
+    }
+
+    private void setValue(Object to, Field toField, Object value) throws IllegalAccessException {
         toField.setAccessible(true);
-        toField.set(dto, value);
+        toField.set(to, value);
         toField.setAccessible(false);
     }
 
-    private <ID> Object simpleReceivingValue(BaseDTOTarget<ID> dtoTarget, Field declaredField) throws IllegalAccessException {
+    private Object simpleReceivingValue(Object from, Field declaredField) throws IllegalAccessException {
         declaredField.setAccessible(true);
-        Object value = declaredField.get(dtoTarget);
+        Object value = declaredField.get(from);
         declaredField.setAccessible(false);
         return value;
     }
@@ -155,9 +192,4 @@ public class DTOMapper {
 
         return defaultCustomMappers.stream().filter(e -> e.getFrom().equals(from) && e.getTo().equals(to)).findFirst();
     }
-
-    public <ID> BaseDTOTarget<ID> map(BaseDTO<ID> dto) throws JsonProcessingException {
-        return null;
-    }
-
 }
