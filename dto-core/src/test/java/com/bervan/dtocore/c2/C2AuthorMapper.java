@@ -1,8 +1,8 @@
 package com.bervan.dtocore.c2;
 
-import com.bervan.dtocore.service.CustomMapper;
+import com.bervan.dtocore.model.DefaultCustomMapper;
 
-public class C2AuthorMapper implements CustomMapper<C2Author, Long> {
+public class C2AuthorMapper implements DefaultCustomMapper<C2Author, Long> {
     @Override
     public Long map(C2Author c2Author) {
         return c2Author.getId();

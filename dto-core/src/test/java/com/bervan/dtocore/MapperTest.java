@@ -8,6 +8,10 @@ import com.bervan.dtocore.c2.C2Author;
 import com.bervan.dtocore.c2.C2AuthorMapper;
 import com.bervan.dtocore.c2.C2Book;
 import com.bervan.dtocore.c2.C2BookDTO;
+import com.bervan.dtocore.fieldmapper.C3Author;
+import com.bervan.dtocore.fieldmapper.C3Book;
+import com.bervan.dtocore.fieldmapper.C3BookDTO;
+import com.bervan.dtocore.fieldmapper.DefaultC3AuthorCustomMapper;
 import com.bervan.dtocore.model.BaseDTO;
 import com.bervan.dtocore.service.DTOMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -165,5 +169,31 @@ class MapperTest {
         Long authorId = ((C2BookDTO) map).getAuthor();
 
         assertEquals(authorId, 150L);
+    }
+
+    @Test
+    public void mapUsingFieldMapperWithExistingDefaultMapper() throws Exception {
+        C3Author author = C3Author.builder().id(150L).firstName("John").lastName("Snow").build();
+
+        dtoMapper = new DTOMapper(Arrays.asList(new DefaultC3AuthorCustomMapper()));
+
+        C3Book book = C3Book.builder()
+                .id(null)
+                .name("Name 1")
+                .summary(null)
+                .author(author)
+                .secureField(null)
+                .build();
+
+        BaseDTO<Long> map = dtoMapper.map(book);
+
+        assertTrue(map instanceof C3BookDTO);
+        assertEquals(map.getId(), book.getId());
+        assertEquals(((C3BookDTO) map).getName(), "NAME 1"); //ToUpperCaseMapper
+        assertEquals(((C3BookDTO) map).getSummary(), book.getSummary());
+
+        String authorDetails = ((C3BookDTO) map).getAuthor();
+
+        assertEquals(authorDetails, "Author with id = 150: John Snow");
     }
 }

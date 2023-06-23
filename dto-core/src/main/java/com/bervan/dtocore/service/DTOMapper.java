@@ -1,7 +1,6 @@
 package com.bervan.dtocore.service;
 
-import com.bervan.dtocore.model.BaseDTO;
-import com.bervan.dtocore.model.BaseDTOTarget;
+import com.bervan.dtocore.model.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,11 +18,11 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class DTOMapper {
-    private final List<? extends CustomMapper> customMappers;
+    private final List<? extends DefaultCustomMapper> defaultCustomMappers;
     private static final ObjectMapper objectMapper = getObjectMapper();
 
-    public DTOMapper(List<? extends CustomMapper> customMappers) {
-        this.customMappers = customMappers;
+    public DTOMapper(List<? extends DefaultCustomMapper> defaultCustomMappers) {
+        this.defaultCustomMappers = defaultCustomMappers;
     }
 
     public static ObjectMapper getObjectMapper() {
@@ -78,7 +77,7 @@ public class DTOMapper {
         if (dtoFieldWithTheSameName.isPresent()) {
             Field toField = dtoFieldWithTheSameName.get();
             Class<?> dtoFieldType = toField.getType();
-            Optional<? extends CustomMapper> customMapper = findCustomMapper(dtoTargetFieldType, dtoFieldType);
+            Optional<? extends CustomMapper> customMapper = findCustomMapper(fromField, dtoTargetFieldType, dtoFieldType);
             Object value = simpleReceivingValue(dtoTarget, fromField);
             if (shouldBeMappedWithCustomMapper(customMapper, value)) {
                 value = customMapper.get().map(value);
@@ -133,10 +132,28 @@ public class DTOMapper {
         return value;
     }
 
-    private Optional<? extends CustomMapper> findCustomMapper(Class<?> from, Class<?> to) {
-        //add possibility to create custom mapper for given use case instead of using global custom mapper, maybe by
-        //using some @CustomMapper(class="CUSTOM_MAPPER_CLASS") and check if field is annotated if not find global custom mapper
-        return customMappers.stream().filter(e -> e.getFrom().equals(from) && e.getTo().equals(to)).findFirst();
+    /**
+     * @param fromField Field in FROM object
+     * @param from      FROM field class
+     * @param to        TO field class
+     *                  Method first tries to find @FieldCustomMapper on the fromField if not found then checks whether
+     *                  in the application was created any CustomMapper that can be user for mapping FROM to TO.
+     * @return custom mapper if found
+     */
+    private Optional<? extends CustomMapper> findCustomMapper(Field fromField, Class<?> from, Class<?> to) {
+        if (fromField.getAnnotation(FieldCustomMapper.class) != null) {
+            try {
+                CustomMapper value = fromField.getAnnotation(FieldCustomMapper.class).mapper()
+                        .getDeclaredConstructor()
+                        .newInstance();
+                return Optional.of(value);
+            } catch (Exception e) {
+                log.error("CustomMapper must have no args public constructor!", e);
+                throw new RuntimeException(e);
+            }
+        }
+
+        return defaultCustomMappers.stream().filter(e -> e.getFrom().equals(from) && e.getTo().equals(to)).findFirst();
     }
 
     public <ID> BaseDTOTarget<ID> map(BaseDTO<ID> dto) throws JsonProcessingException {
