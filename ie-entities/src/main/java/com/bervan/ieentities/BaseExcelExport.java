@@ -177,13 +177,14 @@ public class BaseExcelExport {
         String key = sheet.getSheetName() + ":" + fieldName;
         Integer columnIndex = columnIndexForField.get(key);
         if (columnIndex == null) {
-            Integer lastUsedColumnIndex = lastColumnIndexForSheet.get(sheet.getSheetName());
+            String lastColumnIndexForSheetKey = sheet.getSheetName() + ":" + sheet.getLastRowNum();
+            Integer lastUsedColumnIndex = lastColumnIndexForSheet.get(lastColumnIndexForSheetKey);
             if (lastUsedColumnIndex == null) {
-                lastUsedColumnIndex = 0;
+                lastUsedColumnIndex = 1;
             } else {
                 lastUsedColumnIndex++;
             }
-            lastColumnIndexForSheet.put(sheet.getSheetName(), lastUsedColumnIndex);
+            lastColumnIndexForSheet.put(lastColumnIndexForSheetKey, lastUsedColumnIndex);
             columnIndex = lastUsedColumnIndex;
             columnIndexForField.put(key, columnIndex);
         }
