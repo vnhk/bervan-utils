@@ -6,6 +6,7 @@ import com.bervan.history.model.HistoryOwnerEntity;
 import com.bervan.history.model.HistorySupported;
 import javax.persistence.*;
 
+import com.bervan.ieentities.ExcelIEEntity;
 import lombok.*;
 
 
@@ -17,7 +18,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @HistorySupported
-public class ProjectHistoryTwo implements AbstractBaseHistoryEntity<Long> {
+public class ProjectHistoryTwo implements AbstractBaseHistoryEntity<Long>, ExcelIEEntity<Long> {
     @Id
     @GeneratedValue
     private Long id;
@@ -25,7 +26,7 @@ public class ProjectHistoryTwo implements AbstractBaseHistoryEntity<Long> {
     @HistoryField
     private String name;
 
-    //ignored
+    //ignored in history
     private String description;
 
     @HistoryField(savePath = "creator.id")

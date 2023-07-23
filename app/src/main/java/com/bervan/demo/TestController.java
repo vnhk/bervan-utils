@@ -22,6 +22,8 @@ public class TestController {
     private UserOneRepository userRepository;    
     @Autowired
     private ProjectOneRepositoryCustom projectRepository;
+    @Autowired
+    private ExportEntities exportEntities;
     
     @GetMapping("/test")
     public void test1() {
@@ -48,5 +50,10 @@ public class TestController {
         project = projectRepository.save(project);
 
         all = projectHistoryRepository.findAll();
+    }
+
+    @GetMapping("/exportEntities1")
+    public void exportEntities1() {
+        exportEntities.exportAndSave();
     }
 }

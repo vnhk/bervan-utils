@@ -3,6 +3,7 @@ package com.bervan.demo.autoconfiguration.model;
 import com.bervan.history.model.AbstractBaseEntity;
 import javax.persistence.*;
 
+import com.bervan.ieentities.ExcelIEEntity;
 import lombok.*;
 
 import java.util.HashSet;
@@ -15,7 +16,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserTwo implements AbstractBaseEntity<Long> {
+public class UserTwo implements AbstractBaseEntity<Long>, ExcelIEEntity<Long> {
     @Id
     @GeneratedValue
     private Long id;

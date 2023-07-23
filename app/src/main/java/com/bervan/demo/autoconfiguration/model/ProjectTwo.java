@@ -3,6 +3,7 @@ package com.bervan.demo.autoconfiguration.model;
 import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.HistoryCollection;
 import com.bervan.history.model.HistorySupported;
+import com.bervan.ieentities.ExcelIEEntity;
 import lombok.*;
 
 import javax.persistence.*;
@@ -11,14 +12,13 @@ import java.util.Set;
 
 
 @Entity
-//@EntityListeners(OnUpdateHistoryCreator.class)
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @HistorySupported
-public class ProjectTwo implements AbstractBaseEntity<Long> {
+public class ProjectTwo implements AbstractBaseEntity<Long>, ExcelIEEntity<Long> {
     @Id
     @GeneratedValue
     private Long id;
