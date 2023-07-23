@@ -24,13 +24,13 @@ public class BaseExcelExport {
     private Workbook workbook;
 
     public void save(Workbook workbook, String dirPath, String fileName) {
-        if(Strings.isBlank(dirPath)) {
+        if (Strings.isBlank(dirPath)) {
             dirPath = ".";
             log.warn("Directory path is empty. Workbook will be saved in current directory.");
         }
 
-        if(Strings.isBlank(dirPath)) {
-            dirPath = "temp";
+        if (Strings.isBlank(fileName)) {
+            fileName = "temp";
             log.warn("Filename is empty. Workbook will be saved as temp.xlsx.");
         }
 
@@ -149,8 +149,31 @@ public class BaseExcelExport {
             } else if (value instanceof ExcelIEEntity) {
                 cell.setCellValue(String.valueOf(((ExcelIEEntity<?>) value).getId()));
                 export(Collections.singletonList(((ExcelIEEntity<?>) value)), workbook);
-            } else if (cell instanceof List || cell instanceof Set) {
-                log.warn("Value is a collection. Will not be processed. Create custom exporter!");
+            } else if (value instanceof Collection && ((Collection<?>) value).size() > 0) {
+                StringBuilder sb = new StringBuilder();
+                Iterator<?> iterator = ((Collection<?>) value).iterator();
+                Class<?> elementClass = null;
+                while (iterator.hasNext()) {
+
+                    Object next = iterator.next();
+                    if (elementClass == null) {
+                        elementClass = next.getClass();
+                    }
+
+                    if (elementClass == next.getClass() && next instanceof ExcelIEEntity) {
+                        sb.append(((ExcelIEEntity<?>) next).getId());
+                        sb.append(",");
+                    } else {
+                        log.warn("Value is a non ExcelEntity collection. Will not be processed. Create custom exporter!");
+                        return;
+                    }
+                }
+
+                if (sb.length() > 0) {
+                    String idsSeparatedByComma = sb.toString();
+                    idsSeparatedByComma = idsSeparatedByComma.substring(0, idsSeparatedByComma.length() - 1);
+                    cell.setCellValue(idsSeparatedByComma);
+                }
             }
         }
     }
