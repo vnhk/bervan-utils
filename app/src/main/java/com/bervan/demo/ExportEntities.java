@@ -9,58 +9,65 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class ExportEntities {
 
     public void exportAndSave() {
-        UserTwo creator = UserTwo.builder()
-                .id(1L)
-                .nick("joedoe")
-                .name("Joe")
-                .lastName("Doe")
-                .build();
-
-
-        ProjectTwo project1 = ProjectTwo.builder()
-                .id(1L)
-                .name("App project1")
-                .description("This is project about application!1")
-                .creator(creator)
-                .build();
-
-        project1.setName("Changed app project name1");
-        project1.setDescription("Changed description but should not be saved in history!1");
-
-        ProjectHistoryTwo history1 = ProjectHistoryTwo.builder().id(1L)
-                .project(project1)
-                .name("History 1")
-                .build();
-
-        Set<ProjectHistoryTwo> histories = new HashSet<>();
-        histories.add(history1);
-        project1.setHistory(histories);
-
-        ProjectTwo project2 = ProjectTwo.builder()
-                .id(2L)
-                .name("App project2")
-                .description("This is project about application!2")
-                .creator(creator)
-                .build();
-
-        project2.setName("Changed app project name2");
-        project2.setDescription("Changed description but should not be saved in history!2");
+        List<UserTwo> users = generateUsers(50);
+        List<ProjectTwo> projectTwos = generateProjects(1500, users);
+        List<ProjectHistoryTwo> historyTwos = generateProjectsHistory(15000, projectTwos, users);
 
         List<ExcelIEEntity<?>> entities = new ArrayList<>();
-        entities.add(project2);
-        entities.add(project1);
-        entities.add(creator);
-        entities.add(history1);
+        entities.addAll(users);
+        entities.addAll(projectTwos);
+        entities.addAll(historyTwos);
 
         Workbook export = new BaseExcelExport().export(entities, null);
-        new BaseExcelExport().save(export);
+        new BaseExcelExport().save(export, null, null);
+    }
+
+    private List<UserTwo> generateUsers(int amount) {
+        List<UserTwo> res = new ArrayList<>();
+        for (long i = 1; i <= amount; i++) {
+            res.add(UserTwo.builder()
+                    .id(i)
+                    .nick("joedoe_" + i)
+                    .name("Joe_" + i)
+                    .lastName("Doe_" + 1)
+                    .build());
+        }
+
+        return res;
+    }
+
+    private List<ProjectTwo> generateProjects(int amount, List<UserTwo> users) {
+        List<ProjectTwo> res = new ArrayList<>();
+        for (long i = 1; i <= amount; i++) {
+            res.add(ProjectTwo.builder()
+                    .id(i)
+                    .name("App project_" + i)
+                    .description("This is project about application_" + i)
+                    .creator(users.get((int) (i - 1) % users.size()))
+                    .build());
+        }
+
+        return res;
+    }
+
+    private List<ProjectHistoryTwo> generateProjectsHistory(int amount, List<ProjectTwo> projects, List<UserTwo> users) {
+        List<ProjectHistoryTwo> res = new ArrayList<>();
+        for (long i = 1; i <= amount; i++) {
+            res.add(ProjectHistoryTwo.builder()
+                    .id(i)
+                    .name("History project_" + i)
+                    .description("History desc project about application_" + i)
+                    .creator(users.get((int) (i - 1) % users.size()).getId())
+                    .project(projects.get((int) (i - 1) % projects.size()))
+                    .build());
+        }
+
+        return res;
     }
 }

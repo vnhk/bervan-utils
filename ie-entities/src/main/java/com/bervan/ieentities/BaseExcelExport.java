@@ -1,6 +1,7 @@
 package com.bervan.ieentities;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -22,10 +23,21 @@ public class BaseExcelExport {
     private final Map<Class<? extends ExcelIEEntity<?>>, List<Object>> processedEntities = new HashMap<>();
     private Workbook workbook;
 
-    public void save(Workbook workbook) {
-        File currDir = new File(".");
+    public void save(Workbook workbook, String dirPath, String fileName) {
+        if(Strings.isBlank(dirPath)) {
+            dirPath = ".";
+            log.warn("Directory path is empty. Workbook will be saved in current directory.");
+        }
+
+        if(Strings.isBlank(dirPath)) {
+            dirPath = "temp";
+            log.warn("Filename is empty. Workbook will be saved as temp.xlsx.");
+        }
+
+
+        File currDir = new File(dirPath);
         String path = currDir.getAbsolutePath();
-        String fileLocation = path.substring(0, path.length() - 1) + "temp.xlsx";
+        String fileLocation = path.substring(0, path.length() - 1) + fileName + ".xlsx";
 
         try (FileOutputStream outputStream = new FileOutputStream(fileLocation)) {
             workbook.write(outputStream);
