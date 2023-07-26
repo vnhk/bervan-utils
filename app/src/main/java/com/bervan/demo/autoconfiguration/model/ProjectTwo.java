@@ -18,6 +18,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @HistorySupported
+@EqualsAndHashCode
 public class ProjectTwo implements AbstractBaseEntity<Long>, ExcelIEEntity<Long> {
     @Id
     @GeneratedValue

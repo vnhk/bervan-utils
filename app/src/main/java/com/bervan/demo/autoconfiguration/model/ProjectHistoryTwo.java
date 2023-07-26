@@ -4,10 +4,13 @@ import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.model.HistoryField;
 import com.bervan.history.model.HistoryOwnerEntity;
 import com.bervan.history.model.HistorySupported;
-import javax.persistence.*;
-
 import com.bervan.ieentities.ExcelIEEntity;
 import lombok.*;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 
 
@@ -18,6 +21,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @HistorySupported
+@EqualsAndHashCode
 public class ProjectHistoryTwo implements AbstractBaseHistoryEntity<Long>, ExcelIEEntity<Long> {
     @Id
     @GeneratedValue
