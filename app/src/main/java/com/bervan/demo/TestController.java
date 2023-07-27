@@ -7,7 +7,6 @@ import com.bervan.demo.manualconfiguration.model.UserOne;
 import com.bervan.demo.manualconfiguration.repo.ProjectHistoryOneRepository;
 import com.bervan.demo.manualconfiguration.repo.ProjectOneRepositoryCustom;
 import com.bervan.demo.manualconfiguration.repo.UserOneRepository;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,6 +53,6 @@ public class TestController {
 
     @GetMapping("/exportEntities1")
     public void exportEntities1() {
-        exportEntities.exportAndSave();
+        exportEntities.exportAndSaveLoadAndImport();
     }
 }

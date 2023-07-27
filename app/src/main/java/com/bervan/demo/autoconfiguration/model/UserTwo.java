@@ -16,7 +16,6 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@EqualsAndHashCode
 public class UserTwo implements AbstractBaseEntity<Long>, ExcelIEEntity<Long> {
     @Id
     @GeneratedValue

@@ -46,7 +46,7 @@ public class BaseExcelExport {
         }
     }
 
-    public Workbook export(List<? extends ExcelIEEntity<?>> entities, Workbook workbook) {
+    public Workbook exportExcel(List<? extends ExcelIEEntity<?>> entities, Workbook workbook) {
         this.workbook = Objects.requireNonNullElseGet(workbook, XSSFWorkbook::new);
 
         for (ExcelIEEntity<?> entity : entities) {
@@ -148,7 +148,7 @@ public class BaseExcelExport {
                 cell.setCellValue(((Long) value));
             } else if (value instanceof ExcelIEEntity) {
                 cell.setCellValue(String.valueOf(((ExcelIEEntity<?>) value).getId()));
-                export(Collections.singletonList(((ExcelIEEntity<?>) value)), workbook);
+                exportExcel(Collections.singletonList(((ExcelIEEntity<?>) value)), workbook);
             } else if (value instanceof Collection && ((Collection<?>) value).size() > 0) {
                 StringBuilder sb = new StringBuilder();
                 Iterator<?> iterator = ((Collection<?>) value).iterator();

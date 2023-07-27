@@ -4,7 +4,9 @@ import com.bervan.demo.autoconfiguration.model.ProjectHistoryTwo;
 import com.bervan.demo.autoconfiguration.model.ProjectTwo;
 import com.bervan.demo.autoconfiguration.model.UserTwo;
 import com.bervan.ieentities.BaseExcelExport;
+import com.bervan.ieentities.BaseExcelImport;
 import com.bervan.ieentities.ExcelIEEntity;
+import com.bervan.ieentities.LoadEntitiesAvailableToImport;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +17,7 @@ import java.util.List;
 @Service
 public class ExportEntities {
 
-    public void exportAndSave() {
+    public void exportAndSaveLoadAndImport() {
         List<UserTwo> users = generateUsers(50);
         List<ProjectTwo> projectTwos = generateProjects(1500, users);
         List<ProjectHistoryTwo> historyTwos = generateProjectsHistory(15000, projectTwos, users);
@@ -25,8 +27,14 @@ public class ExportEntities {
         entities.addAll(projectTwos);
         entities.addAll(historyTwos);
 
-        Workbook export = new BaseExcelExport().export(entities, null);
+        Workbook export = new BaseExcelExport().exportExcel(entities, null);
         new BaseExcelExport().save(export, null, null);
+
+        LoadEntitiesAvailableToImport loadEntitiesAvailableToImport = new LoadEntitiesAvailableToImport();
+        List<Class<?>> subclassesOf = loadEntitiesAvailableToImport.getSubclassesOfExcelEntity("com.bervan.demo");
+        BaseExcelImport baseExcelImport = new BaseExcelImport(subclassesOf);
+        Workbook imported = baseExcelImport.load(null, null);
+        List<? extends ExcelIEEntity<?>> excelIEEntities = baseExcelImport.importExcel(imported);
     }
 
     private List<UserTwo> generateUsers(int amount) {
