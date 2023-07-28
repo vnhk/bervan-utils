@@ -1,22 +1,49 @@
-package com.bervan.demo;
+package com.bervan.demo.app;
 
 import com.bervan.demo.autoconfiguration.model.ProjectHistoryTwo;
 import com.bervan.demo.autoconfiguration.model.ProjectTwo;
 import com.bervan.demo.autoconfiguration.model.UserTwo;
+import com.bervan.demo.autoconfiguration.repo.ProjectHistoryTwoRepository;
+import com.bervan.demo.autoconfiguration.repo.ProjectTwoRepositoryCustom;
+import com.bervan.demo.autoconfiguration.repo.UserTwoRepository;
 import com.bervan.ieentities.BaseExcelExport;
 import com.bervan.ieentities.BaseExcelImport;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.bervan.ieentities.LoadEntitiesAvailableToImport;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.stereotype.Service;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-@Service
-public class ExportEntities {
+import static org.assertj.core.api.Assertions.assertThat;
 
+@SpringBootTest(classes = {AppTestConfig.class, EntityManager.class, EntityManagerFactory.class})
+@ExtendWith(SpringExtension.class)
+class BaseImportExportTest {
+    @Autowired
+    private UserTwoRepository userRepository;
+    @Autowired
+    private ProjectTwoRepositoryCustom projectRepository;
+    @Autowired
+    private ProjectHistoryTwoRepository projectHistoryRepository;
+
+    @BeforeEach
+    public void setup() {
+        userRepository.deleteAll();
+        projectRepository.deleteAll();
+        projectHistoryRepository.deleteAll();
+    }
+
+    @Test
     public void exportAndSaveLoadAndImport() {
         List<UserTwo> users = generateUsers(50);
         List<ProjectTwo> projectTwos = generateProjects(1500, users);
@@ -35,6 +62,8 @@ public class ExportEntities {
         BaseExcelImport baseExcelImport = new BaseExcelImport(subclassesOf);
         Workbook imported = baseExcelImport.load(null, null);
         List<? extends ExcelIEEntity<?>> excelIEEntities = (List<? extends ExcelIEEntity<?>>) baseExcelImport.importExcel(imported);
+
+        assertThat(excelIEEntities).hasSize(entities.size());
     }
 
     private List<UserTwo> generateUsers(int amount) {
@@ -61,7 +90,7 @@ public class ExportEntities {
                     .description("This is project about application_" + i)
                     .creator(creator)
                     .build());
-            if(creator.getCreatedProjects() == null)
+            if (creator.getCreatedProjects() == null)
                 creator.setCreatedProjects(new HashSet<>());
             creator.getCreatedProjects().add(res.get(res.size() - 1));
         }
@@ -81,7 +110,7 @@ public class ExportEntities {
                     .project(project)
                     .build());
 
-            if(project.getHistory() == null)
+            if (project.getHistory() == null)
                 project.setHistory(new HashSet<>());
             project.getHistory().add(res.get(res.size() - 1));
         }

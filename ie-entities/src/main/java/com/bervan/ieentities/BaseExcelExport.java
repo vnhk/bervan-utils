@@ -95,7 +95,7 @@ public class BaseExcelExport {
         Row row = sheet.getRow(0);
         if (row == null) {
             row = sheet.createRow(0);
-            row.createCell(0).setCellValue("ID");
+            row.createCell(0).setCellValue(getIdHeaderName());
             int columnCount = 1;
             for (Method getter : getters) {
                 String fieldName = getter.getName().split("get")[1];
@@ -103,6 +103,10 @@ public class BaseExcelExport {
                 columnCount++;
             }
         }
+    }
+
+    protected String getIdHeaderName() {
+        return "Id";
     }
 
     protected void createCellWithId(ExcelIEEntity<?> entity, Sheet sheet) {
@@ -146,6 +150,8 @@ public class BaseExcelExport {
                 cell.setCellValue(((Double) value));
             } else if (value instanceof Long) {
                 cell.setCellValue(((Long) value));
+            } else if (value instanceof Integer) {
+                cell.setCellValue(((Integer) value));
             } else if (value instanceof ExcelIEEntity) {
                 cell.setCellValue(String.valueOf(((ExcelIEEntity<?>) value).getId()));
                 exportExcel(Collections.singletonList(((ExcelIEEntity<?>) value)), workbook);
