@@ -52,9 +52,19 @@ public class BaseRepositoryImpl<T extends Persistable<ID>, ID extends Serializab
         ((AbstractBaseEntity<?>) entity).setModificationDate(modificationDate);
         history.setUpdateDate(modificationDate);
 
+        historyPreHistorySave(history);
         entityManager.persist(history);
 
+        historyPreEntitySave(entity);
         return super.save(entity);
+    }
+
+    protected <S extends T> void historyPreEntitySave(S entity) {
+
+    }
+
+    protected void historyPreHistorySave(AbstractBaseHistoryEntity<ID> history) {
+
     }
 
     private <S extends T> boolean shouldCreateHistory(S entity) {
