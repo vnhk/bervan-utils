@@ -6,6 +6,7 @@ import com.bervan.history.model.HistoryField;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -30,6 +31,18 @@ public class ProjectHistory implements AbstractBaseHistoryEntity<UUID> {
     private Integer importance;
     @HistoryField
     private ProjectStatus status;
+
+    private LocalDateTime updateDate;
+
+    @Override
+    public LocalDateTime getUpdateDate() {
+        return updateDate;
+    }
+
+    @Override
+    public void setUpdateDate(LocalDateTime updateDate) {
+        this.updateDate = updateDate;
+    }
 
     //relation
     private Project project;

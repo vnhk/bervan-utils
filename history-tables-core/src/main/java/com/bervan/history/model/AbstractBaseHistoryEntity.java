@@ -1,11 +1,23 @@
 package com.bervan.history.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public interface AbstractBaseHistoryEntity<ID> extends Serializable, Persistable<ID> {
+
+    LocalDateTime getUpdateDate();
+
+    void setUpdateDate(LocalDateTime updateDate);
+
+    @JsonIgnore
     default void buildTargetEntityConnection(AbstractBaseEntity<ID> entity) {
         Collection historyEntities = entity.getHistoryEntities();
         if (historyEntities == null) {
@@ -16,6 +28,7 @@ public interface AbstractBaseHistoryEntity<ID> extends Serializable, Persistable
         this.setEntity(entity);
     }
 
+    @JsonIgnore
     default void setEntity(AbstractBaseEntity<ID> entity) {
         Field field = getHistoryOwnerEntityField(this);
         try {
@@ -28,6 +41,7 @@ public interface AbstractBaseHistoryEntity<ID> extends Serializable, Persistable
         }
     }
 
+    @JsonIgnore
     default Field getHistoryOwnerEntityField(AbstractBaseHistoryEntity<ID> historyEntity) {
         List<Field> fields = Arrays.stream(historyEntity.getClass().getDeclaredFields())
                 .filter(e -> e.isAnnotationPresent(HistoryOwnerEntity.class))
@@ -42,6 +56,7 @@ public interface AbstractBaseHistoryEntity<ID> extends Serializable, Persistable
         return fields.get(0);
     }
 
+    @JsonIgnore
     default AbstractBaseEntity<ID> getEntity() {
         Field field = getHistoryOwnerEntityField(this);
 

@@ -11,7 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-
+import java.time.LocalDateTime;
 
 
 @Entity
@@ -38,6 +38,18 @@ public class ProjectHistoryTwo implements AbstractBaseHistoryEntity<Long>, Excel
     @ManyToOne
     @HistoryOwnerEntity
     private ProjectTwo project;
+
+    private LocalDateTime updateDate;
+
+    @Override
+    public LocalDateTime getUpdateDate() {
+        return updateDate;
+    }
+
+    @Override
+    public void setUpdateDate(LocalDateTime updateDate) {
+        this.updateDate = updateDate;
+    }
 
     @Override
     public void setId(Long id) {

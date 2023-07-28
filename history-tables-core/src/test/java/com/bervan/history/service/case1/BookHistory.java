@@ -5,6 +5,8 @@ import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.model.HistoryField;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Builder
@@ -20,6 +22,17 @@ public class BookHistory implements AbstractBaseHistoryEntity<Long> {
 
     //relation
     private Book book;
+    private LocalDateTime updateDate;
+
+    @Override
+    public LocalDateTime getUpdateDate() {
+        return updateDate;
+    }
+
+    @Override
+    public void setUpdateDate(LocalDateTime updateDate) {
+        this.updateDate = updateDate;
+    }
 
     @Override
     public void setEntity(AbstractBaseEntity<Long> entity) {

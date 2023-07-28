@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
@@ -23,6 +24,7 @@ public class Project implements AbstractBaseEntity<UUID> {
     private BigDecimal price;
     private Integer importance;
     private ProjectStatus status;
+    private LocalDateTime modificationDate;
 
     //history
     private Set<ProjectHistory> history;
@@ -42,6 +44,7 @@ public class Project implements AbstractBaseEntity<UUID> {
         return ProjectHistory.class;
     }
 
+
     @Override
     public UUID getId() {
         return id;
@@ -50,5 +53,15 @@ public class Project implements AbstractBaseEntity<UUID> {
     @Override
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    @Override
+    public LocalDateTime getModificationDate() {
+        return modificationDate;
+    }
+
+    @Override
+    public void setModificationDate(LocalDateTime modificationDate) {
+        this.modificationDate = modificationDate;
     }
 }

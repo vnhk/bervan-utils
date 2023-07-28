@@ -91,7 +91,9 @@ public class BaseExcelImport {
         for (int i = 1; i < headerNames.size(); i++) {
             String columnName = headerNames.get(i);
             Cell cell = row.getCell(i);
-            useSetterToSetValue(cell, entity, setters.get(columnName));
+            if (cell != null) {
+                useSetterToSetValue(cell, entity, setters.get(columnName));
+            }
         }
     }
 

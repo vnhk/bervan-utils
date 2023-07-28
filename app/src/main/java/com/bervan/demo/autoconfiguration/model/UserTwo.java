@@ -6,6 +6,7 @@ import javax.persistence.*;
 import com.bervan.ieentities.ExcelIEEntity;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,6 +24,18 @@ public class UserTwo implements AbstractBaseEntity<Long>, ExcelIEEntity<Long> {
     private String name;
     private String lastName;
     private String nick;
+
+    private LocalDateTime modificationDate;
+
+    @Override
+    public LocalDateTime getModificationDate() {
+        return modificationDate;
+    }
+
+    @Override
+    public void setModificationDate(LocalDateTime modificationDate) {
+        this.modificationDate = modificationDate;
+    }
 
     @OneToMany
     private Set<ProjectTwo> createdProjects = new HashSet<>();

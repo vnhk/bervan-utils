@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 
@@ -17,6 +18,17 @@ public class User implements AbstractBaseEntity<Long> {
     private String nick;
     private String name;
     private String surname;
+    private LocalDateTime modificationDate;
+
+    @Override
+    public LocalDateTime getModificationDate() {
+        return modificationDate;
+    }
+
+    @Override
+    public void setModificationDate(LocalDateTime modificationDate) {
+        this.modificationDate = modificationDate;
+    }
 
     @Override
     public Set<? extends AbstractBaseHistoryEntity<Long>> getHistoryEntities() {

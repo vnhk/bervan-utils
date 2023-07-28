@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 
@@ -18,7 +19,17 @@ public class Book implements AbstractBaseEntity<Long> {
     private String name;
     private String summary;
     private User user;
+    private LocalDateTime modificationDate;
 
+    @Override
+    public LocalDateTime getModificationDate() {
+        return modificationDate;
+    }
+
+    @Override
+    public void setModificationDate(LocalDateTime modificationDate) {
+        this.modificationDate = modificationDate;
+    }
     //history
     private Set<BookHistory> history;
 

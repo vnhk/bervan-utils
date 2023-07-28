@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 @Transactional
@@ -45,6 +47,11 @@ public class BaseRepositoryImpl<T extends Persistable<ID>, ID extends Serializab
         //edit
         HistoryService<ID> historyService = new HistoryService<>();
         AbstractBaseHistoryEntity<ID> history = historyService.buildHistory((AbstractBaseEntity<ID>) savedVersion.get());
+
+        LocalDateTime modificationDate = LocalDateTime.now(ZoneId.systemDefault());
+        ((AbstractBaseEntity<?>) entity).setModificationDate(modificationDate);
+        history.setUpdateDate(modificationDate);
+
         entityManager.persist(history);
 
         return super.save(entity);

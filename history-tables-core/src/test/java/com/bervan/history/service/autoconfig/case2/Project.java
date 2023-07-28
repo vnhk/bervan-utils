@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,6 +26,7 @@ public class Project implements AbstractBaseEntity<UUID> {
 
     @HistoryCollection(historyClass = ProjectHistory.class)
     private Set<ProjectHistory> history;
+    private LocalDateTime modificationDate;
 
     @Override
     public UUID getId() {
@@ -34,5 +36,15 @@ public class Project implements AbstractBaseEntity<UUID> {
     @Override
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    @Override
+    public LocalDateTime getModificationDate() {
+        return modificationDate;
+    }
+
+    @Override
+    public void setModificationDate(LocalDateTime modificationDate) {
+        this.modificationDate = modificationDate;
     }
 }

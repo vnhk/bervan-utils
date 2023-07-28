@@ -1,13 +1,22 @@
 package com.bervan.history.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public interface AbstractBaseEntity<ID> extends Serializable, Persistable<ID> {
+
+    LocalDateTime getModificationDate();
+
+    void setModificationDate(LocalDateTime modificationDate);
+
+    @JsonIgnore
     default Collection<? extends AbstractBaseHistoryEntity<ID>> getHistoryEntities() {
         Field field = getHistoryCollectionField();
 
@@ -21,6 +30,7 @@ public interface AbstractBaseEntity<ID> extends Serializable, Persistable<ID> {
         }
     }
 
+    @JsonIgnore
     default void setHistoryEntities(Collection<? extends AbstractBaseHistoryEntity<ID>> historyEntities) {
         Field field = getHistoryCollectionField();
 
@@ -34,11 +44,13 @@ public interface AbstractBaseEntity<ID> extends Serializable, Persistable<ID> {
         }
     }
 
+    @JsonIgnore
     default Class<? extends AbstractBaseHistoryEntity<ID>> getTargetHistoryEntityClass() {
         Field field = getHistoryCollectionField();
         return (Class<? extends AbstractBaseHistoryEntity<ID>>) field.getAnnotation(HistoryCollection.class).historyClass();
     }
 
+    @JsonIgnore
     default Field getHistoryCollectionField() {
         List<Field> fields = getFieldsAnnotatedWithHistoryCollection();
 
@@ -51,6 +63,7 @@ public interface AbstractBaseEntity<ID> extends Serializable, Persistable<ID> {
         return fields.get(0);
     }
 
+    @JsonIgnore
     default List<Field> getFieldsAnnotatedWithHistoryCollection() {
         return Arrays.stream(this.getClass().getDeclaredFields())
                 .filter(e -> e.isAnnotationPresent(HistoryCollection.class))

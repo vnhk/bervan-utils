@@ -8,6 +8,7 @@ import javax.persistence.*;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 
 
 @Entity
@@ -33,6 +34,18 @@ public class ProjectHistoryOne implements AbstractBaseHistoryEntity<Long> {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "project_id")
     private ProjectOne project;
+
+    private LocalDateTime updateDate;
+
+    @Override
+    public LocalDateTime getUpdateDate() {
+        return updateDate;
+    }
+
+    @Override
+    public void setUpdateDate(LocalDateTime updateDate) {
+        this.updateDate = updateDate;
+    }
 
     @Override
     public void setId(Long id) {

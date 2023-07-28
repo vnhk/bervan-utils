@@ -6,6 +6,7 @@ import com.bervan.history.model.HistorySupported;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,6 +32,18 @@ public class ProjectOne implements AbstractBaseEntity<Long> {
     private UserOne creator;
     @OneToMany(mappedBy = "project", fetch = FetchType.EAGER)
     private Set<ProjectHistoryOne> history = new HashSet<>();
+
+    private LocalDateTime modificationDate;
+
+    @Override
+    public LocalDateTime getModificationDate() {
+        return modificationDate;
+    }
+
+    @Override
+    public void setModificationDate(LocalDateTime modificationDate) {
+        this.modificationDate = modificationDate;
+    }
 
     @Override
     public void setId(Long id) {
