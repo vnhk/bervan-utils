@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Transactional
 @Slf4j
-public class BaseRepositoryImpl<T extends AbstractBaseEntity<ID>, ID extends Serializable> extends SimpleJpaRepository<T, ID>
+public class BaseRepositoryImpl<T extends Persistable<ID>, ID extends Serializable> extends SimpleJpaRepository<T, ID>
         implements BaseRepository<T, ID> {
 
     private final EntityManager entityManager;
@@ -26,7 +26,7 @@ public class BaseRepositoryImpl<T extends AbstractBaseEntity<ID>, ID extends Ser
     @Override
     public <S extends T> S save(S entity) {
         //if we don't want to have history we should not annotate class with @HistorySupported
-        if (!shouldCreateHistory(entity)) {
+        if (!shouldCreateHistory(entity) || !(entity instanceof AbstractBaseEntity)) {
             return super.save(entity);
         }
 
@@ -44,7 +44,7 @@ public class BaseRepositoryImpl<T extends AbstractBaseEntity<ID>, ID extends Ser
 
         //edit
         HistoryService<ID> historyService = new HistoryService<>();
-        AbstractBaseHistoryEntity<ID> history = historyService.buildHistory(savedVersion.get());
+        AbstractBaseHistoryEntity<ID> history = historyService.buildHistory((AbstractBaseEntity<ID>) savedVersion.get());
         entityManager.persist(history);
 
         return super.save(entity);

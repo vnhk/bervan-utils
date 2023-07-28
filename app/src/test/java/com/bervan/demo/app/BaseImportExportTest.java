@@ -45,9 +45,9 @@ class BaseImportExportTest {
 
     @Test
     public void exportAndSaveLoadAndImport() {
-        List<UserTwo> users = generateUsers(50);
-        List<ProjectTwo> projectTwos = generateProjects(1500, users);
-        List<ProjectHistoryTwo> historyTwos = generateProjectsHistory(15000, projectTwos, users);
+        List<UserTwo> users = generateUsers(50, true);
+        List<ProjectTwo> projectTwos = generateProjects(1500, users, true);
+        List<ProjectHistoryTwo> historyTwos = generateProjectsHistory(15000, projectTwos, users, true);
 
         List<ExcelIEEntity<?>> entities = new ArrayList<>();
         entities.addAll(users);
@@ -66,11 +66,37 @@ class BaseImportExportTest {
         assertThat(excelIEEntities).hasSize(entities.size());
     }
 
-    private List<UserTwo> generateUsers(int amount) {
+    @Test
+    public void exportAndSaveLoadAndImportWithDB() {
+        List<UserTwo> users = generateUsers(3, false);
+        users = userRepository.saveAll(users);
+        List<ProjectTwo> projectTwos = generateProjects(25, users, false);
+        projectTwos = projectRepository.saveAll(projectTwos);
+        List<ProjectHistoryTwo> historyTwos = generateProjectsHistory(55, projectTwos, users, false);
+        historyTwos = projectHistoryRepository.saveAll(historyTwos);
+
+        List<ExcelIEEntity<?>> entities = new ArrayList<>();
+        entities.addAll(users);
+        entities.addAll(projectTwos);
+        entities.addAll(historyTwos);
+
+        Workbook export = new BaseExcelExport().exportExcel(entities, null);
+        new BaseExcelExport().save(export, "src/test/exportAndSaveLoadAndImportWithDB", null);
+
+        LoadEntitiesAvailableToImport loadEntitiesAvailableToImport = new LoadEntitiesAvailableToImport();
+        List<Class<?>> subclassesOf = loadEntitiesAvailableToImport.getSubclassesOfExcelEntity("com.bervan.demo");
+        BaseExcelImport baseExcelImport = new BaseExcelImport(subclassesOf);
+        Workbook imported = baseExcelImport.load("src/test/exportAndSaveLoadAndImportWithDB", null);
+        List<? extends ExcelIEEntity<?>> excelIEEntities = (List<? extends ExcelIEEntity<?>>) baseExcelImport.importExcel(imported);
+
+        assertThat(entities).hasSize(excelIEEntities.size());
+    }
+
+    private List<UserTwo> generateUsers(int amount, boolean generateId) {
         List<UserTwo> res = new ArrayList<>();
         for (long i = 1; i <= amount; i++) {
             res.add(UserTwo.builder()
-                    .id(i)
+                    .id(generateId ? i : null)
                     .nick("joedoe_" + i)
                     .name("Joe_" + i)
                     .lastName("Doe_" + 1)
@@ -80,12 +106,12 @@ class BaseImportExportTest {
         return res;
     }
 
-    private List<ProjectTwo> generateProjects(int amount, List<UserTwo> users) {
+    private List<ProjectTwo> generateProjects(int amount, List<UserTwo> users, boolean generateId) {
         List<ProjectTwo> res = new ArrayList<>();
         for (long i = 1; i <= amount; i++) {
             UserTwo creator = users.get((int) (i - 1) % users.size());
             res.add(ProjectTwo.builder()
-                    .id(i)
+                    .id(generateId ? i : null)
                     .name("App project_" + i)
                     .description("This is project about application_" + i)
                     .creator(creator)
@@ -98,12 +124,12 @@ class BaseImportExportTest {
         return res;
     }
 
-    private List<ProjectHistoryTwo> generateProjectsHistory(int amount, List<ProjectTwo> projects, List<UserTwo> users) {
+    private List<ProjectHistoryTwo> generateProjectsHistory(int amount, List<ProjectTwo> projects, List<UserTwo> users, boolean generateId) {
         List<ProjectHistoryTwo> res = new ArrayList<>();
         for (long i = 1; i <= amount; i++) {
             ProjectTwo project = projects.get((int) (i - 1) % projects.size());
             res.add(ProjectHistoryTwo.builder()
-                    .id(i)
+                    .id(generateId ? i : null)
                     .name("History project_" + i)
                     .description("History desc project about application_" + i)
                     .creator(users.get((int) (i - 1) % users.size()).getId())

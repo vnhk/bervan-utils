@@ -247,11 +247,15 @@ public class BaseExcelImport {
                 method.invoke(excelEntityRef, UUID.fromString(id));
                 return;
             } else {
-                log.warn("Could not set excel entity ref id! Make sure setId method parameter is supported! [" + typeName + "]");
+                defaultMapper(excelEntityRef, id, setIdMethods, typeName);
             }
         }
-
+        log.warn("Could not set excel entity ref id! Make sure setId method parameter is supported!");
         throw new RuntimeException("Could not set excel entity ref id!");
+    }
+
+    protected void defaultMapper(ExcelIEEntity<?> excelEntityRef, String id, List<Method> setIdMethods, String typeName) {
+
     }
 
     private boolean isCollectionOfExcelEntities(String typeName,
