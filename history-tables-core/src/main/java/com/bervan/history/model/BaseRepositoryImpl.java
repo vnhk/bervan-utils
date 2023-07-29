@@ -37,6 +37,7 @@ public class BaseRepositoryImpl<T extends Persistable<ID>, ID extends Serializab
             return super.save(entity);
         }
 
+        entityManager.clear();
         Optional<T> savedVersion = findById(entity.getId());
 
         //create with given id
