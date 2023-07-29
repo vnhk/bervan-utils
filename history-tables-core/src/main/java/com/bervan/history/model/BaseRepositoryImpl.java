@@ -29,6 +29,7 @@ public class BaseRepositoryImpl<T extends Persistable<ID>, ID extends Serializab
     public <S extends T> S save(S entity) {
         //if we don't want to have history we should not annotate class with @HistorySupported
         if (!shouldCreateHistory(entity) || !(entity instanceof AbstractBaseEntity)) {
+            log.warn("History for entity: " + entity.getClass().getName() + " will not be created!");
             return super.save(entity);
         }
 
