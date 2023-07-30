@@ -52,6 +52,15 @@ public class BaseExcelImport {
         }
     }
 
+    public Workbook load(File file) {
+        try (FileInputStream inputStream = new FileInputStream(file)) {
+            return new XSSFWorkbook(inputStream);
+        } catch (Exception e) {
+            log.error("Cannot load workbook!", e);
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<?> importExcel(Workbook workbook) {
         loadSheets(workbook);
         try {
