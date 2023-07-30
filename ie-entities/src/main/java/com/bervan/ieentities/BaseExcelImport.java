@@ -61,6 +61,8 @@ public class BaseExcelImport {
         }
     }
 
+    // TODO: 30/07/2023 Add additional excel row id column used for identifying processed rows instead on using and requiring entity id
+    //  - it would allow to import data without requirement of providing entity Id
     public List<?> importExcel(Workbook workbook) {
         loadSheets(workbook);
         try {

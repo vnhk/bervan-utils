@@ -4,11 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.*;
 
 @Slf4j
-public class LoadEntitiesAvailableToImport {
+public class LoadIEAvailableEntities {
 
     public List<Class<?>> getSubclassesOfExcelEntity(String... basePackages) {
         if (basePackages == null || basePackages.length < 1) {
@@ -30,9 +31,9 @@ public class LoadEntitiesAvailableToImport {
         return subclasses;
     }
 
-    private static void getAllClassesFromPath(ClassLoader classLoader, File file,
-                                              List<Class<?>> classes,
-                                              String[] basePackages) {
+    private void getAllClassesFromPath(ClassLoader classLoader, File file,
+                                       List<Class<?>> classes,
+                                       String[] basePackages) {
         if (file.isDirectory()) {
             for (File nestedFile : file.listFiles()) {
                 getAllClassesFromPath(classLoader, nestedFile, classes, basePackages);
@@ -53,7 +54,8 @@ public class LoadEntitiesAvailableToImport {
                 classPath = classPath.substring(start);
                 try {
                     Class<?> clazz = classLoader.loadClass(classPath);
-                    if (ExcelIEEntity.class.isAssignableFrom(clazz) && !clazz.equals(ExcelIEEntity.class)) {
+                    if (ExcelIEEntity.class.isAssignableFrom(clazz) && !clazz.equals(ExcelIEEntity.class)
+                            && !Modifier.isAbstract(clazz.getModifiers())) {
                         classes.add(clazz);
                     }
                 } catch (ClassNotFoundException e) {

@@ -9,7 +9,7 @@ import com.bervan.demo.autoconfiguration.repo.UserTwoRepository;
 import com.bervan.ieentities.BaseExcelExport;
 import com.bervan.ieentities.BaseExcelImport;
 import com.bervan.ieentities.ExcelIEEntity;
-import com.bervan.ieentities.LoadEntitiesAvailableToImport;
+import com.bervan.ieentities.LoadIEAvailableEntities;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,8 +57,8 @@ class BaseImportExportTest {
         Workbook export = new BaseExcelExport().exportExcel(entities, null);
         new BaseExcelExport().save(export, null, null);
 
-        LoadEntitiesAvailableToImport loadEntitiesAvailableToImport = new LoadEntitiesAvailableToImport();
-        List<Class<?>> subclassesOf = loadEntitiesAvailableToImport.getSubclassesOfExcelEntity("com.bervan.demo");
+        LoadIEAvailableEntities loadIEAvailableEntities = new LoadIEAvailableEntities();
+        List<Class<?>> subclassesOf = loadIEAvailableEntities.getSubclassesOfExcelEntity("com.bervan.demo");
         BaseExcelImport baseExcelImport = new BaseExcelImport(subclassesOf);
         Workbook imported = baseExcelImport.load(null, null);
         List<? extends ExcelIEEntity<?>> excelIEEntities = (List<? extends ExcelIEEntity<?>>) baseExcelImport.importExcel(imported);
@@ -83,8 +83,8 @@ class BaseImportExportTest {
         Workbook export = new BaseExcelExport().exportExcel(entities, null);
         new BaseExcelExport().save(export, "src/test/exportAndSaveLoadAndImportWithDB", null);
 
-        LoadEntitiesAvailableToImport loadEntitiesAvailableToImport = new LoadEntitiesAvailableToImport();
-        List<Class<?>> subclassesOf = loadEntitiesAvailableToImport.getSubclassesOfExcelEntity("com.bervan.demo");
+        LoadIEAvailableEntities loadIEAvailableEntities = new LoadIEAvailableEntities();
+        List<Class<?>> subclassesOf = loadIEAvailableEntities.getSubclassesOfExcelEntity("com.bervan.demo");
         BaseExcelImport baseExcelImport = new BaseExcelImport(subclassesOf);
         Workbook imported = baseExcelImport.load("src/test/exportAndSaveLoadAndImportWithDB", null);
         List<? extends ExcelIEEntity<?>> excelIEEntities = (List<? extends ExcelIEEntity<?>>) baseExcelImport.importExcel(imported);

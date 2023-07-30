@@ -23,7 +23,7 @@ public class BaseExcelExport {
     private final Map<Class<? extends ExcelIEEntity<?>>, List<Object>> processedEntities = new HashMap<>();
     private Workbook workbook;
 
-    public void save(Workbook workbook, String dirPath, String fileName) {
+    public File save(Workbook workbook, String dirPath, String fileName) {
         if (Strings.isBlank(dirPath)) {
             dirPath = ".";
             log.warn("Directory path is empty. Workbook will be saved in current directory.");
@@ -38,12 +38,15 @@ public class BaseExcelExport {
         File currDir = new File(dirPath);
         String path = currDir.getAbsolutePath();
         String fileLocation = path.substring(0, path.length() - 1) + fileName + ".xlsx";
+        File toSave = new File(fileLocation);
 
-        try (FileOutputStream outputStream = new FileOutputStream(fileLocation)) {
+        try (FileOutputStream outputStream = new FileOutputStream(toSave)) {
             workbook.write(outputStream);
         } catch (Exception e) {
             log.error("Cannot save workbook!", e);
         }
+
+        return toSave;
     }
 
     public Workbook exportExcel(List<? extends ExcelIEEntity<?>> entities, Workbook workbook) {
