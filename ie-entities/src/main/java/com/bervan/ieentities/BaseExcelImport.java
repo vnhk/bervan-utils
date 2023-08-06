@@ -10,8 +10,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -79,40 +79,39 @@ public class BaseExcelImport {
     protected void importData(Class<?> entity, Sheet sheet) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
         int lastRowNum = sheet.getLastRowNum();
         List<String> headerNames = getHeaderNames(sheet);
-        List<Method> settersToImportData = getSettersToImportData(entity, headerNames);
-        Map<String, Method> setterForColumn = new HashMap<>();
+        List<Field> fieldsToImportData = getFieldsToImportData(entity, headerNames);
+        Map<String, Field> fieldsForColumn = new HashMap<>();
         for (String headerName : headerNames) {
-            setterForColumn.put(headerName, getSetterForHeaderName(settersToImportData, headerName));
+            fieldsForColumn.put(headerName, getFieldForHeaderName(fieldsToImportData, headerName));
         }
 
         for (int i = 1; i < lastRowNum; i++) {
             ExcelIEEntity<?> excelIEEntity = initEntity(entity);
-            fillData(excelIEEntity, i, headerNames, setterForColumn, sheet);
+            fillData(excelIEEntity, i, headerNames, fieldsForColumn, sheet);
             entities.add(excelIEEntity);
         }
     }
 
-    private Method getSetterForHeaderName(List<Method> settersToImportData, String headerName) {
-        return settersToImportData.stream().filter(e -> e.getName().equals("set" + headerName)).findFirst().get();
+    private Field getFieldForHeaderName(List<Field> fieldsToImportData, String headerName) {
+        return fieldsToImportData.stream().filter(e -> e.getName().equalsIgnoreCase(headerName)).findFirst().get();
     }
 
-    private void fillData(ExcelIEEntity<?> entity, int rowNumber, List<String> headerNames, Map<String, Method> setters, Sheet sheet) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
+    private void fillData(ExcelIEEntity<?> entity, int rowNumber, List<String> headerNames, Map<String, Field> fields, Sheet sheet) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
         log.info("Importing row: " + rowNumber + " for " + sheet.getSheetName());
         Row row = sheet.getRow(rowNumber);
-        for (int i = 1; i < headerNames.size(); i++) {
+        for (int i = 0; i < headerNames.size(); i++) {
             String columnName = headerNames.get(i);
             Cell cell = row.getCell(i);
             if (cell != null) {
-                useSetterToSetValue(cell, entity, setters.get(columnName));
+                setValue(cell, entity, fields.get(columnName));
             }
         }
     }
 
-    protected List<Method> getSettersToImportData(Class<?> entity, List<String> headersName) {
-        return Arrays.stream(entity.getDeclaredMethods())
+    protected List<Field> getFieldsToImportData(Class<?> entity, List<String> headersName) {
+        return Arrays.stream(entity.getDeclaredFields())
                 .filter(e -> !e.isAnnotationPresent(ExcelIgnore.class))
-                .filter(e -> e.getName().startsWith("set"))
-                .filter(e -> headersName.contains(e.getName().substring(3)))
+                .filter(e -> headersName.contains(e.getName().toLowerCase(Locale.ROOT)))
                 .collect(Collectors.toList());
     }
 
@@ -122,7 +121,7 @@ public class BaseExcelImport {
         int lastCellNum = headerRow.getLastCellNum();
         List<String> headersNames = new ArrayList<>();
         for (int i = 0; i < lastCellNum; i++) {
-            headersNames.add(headerRow.getCell(i).getStringCellValue());
+            headersNames.add(headerRow.getCell(i).getStringCellValue().toLowerCase(Locale.ROOT));
         }
 
         return headersNames;
@@ -152,9 +151,9 @@ public class BaseExcelImport {
         }
     }
 
-    protected void useSetterToSetValue(Cell cell, ExcelIEEntity<?> entity, Method setter)
+    protected void setValue(Cell cell, ExcelIEEntity<?> entity, Field field)
             throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
-        String typeName = setter.getParameters()[0].getParameterizedType().getTypeName();
+        String typeName = field.getType().getTypeName();
         String parametrizedType = null;
         int parametrizedSignStart = 0;
         int parametrizedSignEnd = 0;
@@ -164,24 +163,26 @@ public class BaseExcelImport {
             parametrizedType = typeName.substring(parametrizedSignStart, parametrizedSignEnd);
         }
 
+        field.setAccessible(true);
+
         if (typeName.equals(Boolean.class.getTypeName())) {
-            setter.invoke(entity, cell.getBooleanCellValue());
+            field.set(entity, cell.getBooleanCellValue());
         } else if (typeName.equals(Double.class.getTypeName())) {
-            setter.invoke(entity, cell.getNumericCellValue());
+            field.set(entity, cell.getNumericCellValue());
         } else if (typeName.equals(Integer.class.getTypeName())) {
             double numericCellValue = cell.getNumericCellValue();
-            setter.invoke(entity, Double.valueOf(numericCellValue).intValue());
+            field.set(entity, Double.valueOf(numericCellValue).intValue());
         } else if (typeName.equals(Long.class.getTypeName())) {
             double numericCellValue = cell.getNumericCellValue();
-            setter.invoke(entity, Double.valueOf(numericCellValue).longValue());
+            field.set(entity, Double.valueOf(numericCellValue).longValue());
         } else if (typeName.equals(Date.class.getTypeName())) {
-            setter.invoke(entity, cell.getDateCellValue());
+            field.set(entity, cell.getDateCellValue());
         } else if (typeName.equals(LocalDateTime.class.getTypeName())) {
             LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
-            setter.invoke(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
+            field.set(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
         } else if (typeName.equals(LocalDate.class.getTypeName())) {
             LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
-            setter.invoke(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
+            field.set(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
         } else if (isCollectionOfExcelEntities(typeName, parametrizedType, parametrizedSignStart, parametrizedSignEnd)) {
             String value = cell.getStringCellValue();
             if (Strings.isNotBlank(value)) {
@@ -189,22 +190,23 @@ public class BaseExcelImport {
                 String[] ids = value.split(",");
                 Class<?> classExcelEntity = Class.forName(parametrizedType);
                 ExcelIEEntity<?> excelEntityRef = initEntity(classExcelEntity);
-                List<Method> setIdMethods = Arrays.stream(excelEntityRef.getClass().getDeclaredMethods())
-                        .filter(e -> e.getName().equals("setId")).collect(Collectors.toList());
+                Field idField = Arrays.stream(excelEntityRef.getClass().getDeclaredFields())
+                        .filter(e -> e.getName().equalsIgnoreCase("Id")).findFirst().get();
                 for (String id : ids) {
-                    setExcelEntityRefId(excelEntityRef, id.trim(), setIdMethods);
+                    setExcelEntityRefId(excelEntityRef, id.trim(), idField);
                     excelIEEntities.add(excelEntityRef);
                 }
 
                 if (typeName.replace(parametrizedType, "").equals(List.class.getTypeName())) {
                     LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
-                    setter.invoke(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
+                    field.set(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
                 }
             }
         } else if (typeName.equals(String.class.getTypeName())) {
             String value = cell.getStringCellValue();
-            setter.invoke(entity, value);
+            field.set(entity, value);
         }
+        field.setAccessible(false);
 
 //        if (value instanceof String) {
 //            cell.setCellValue(value.toString());
@@ -251,30 +253,29 @@ public class BaseExcelImport {
 //        }
     }
 
-    protected void setExcelEntityRefId(ExcelIEEntity<?> excelEntityRef, String id, List<Method> setIdMethods) throws InvocationTargetException, IllegalAccessException {
-        for (Method method : setIdMethods) {
-            String typeName = method.getParameters()[0].getType().getName();
-            if (typeName.equals(String.class.getTypeName())) {
-                method.invoke(excelEntityRef, id);
-                return;
-            } else if (typeName.equals(Long.class.getTypeName())) {
-                method.invoke(excelEntityRef, Long.parseLong(id));
-                return;
-            } else if (typeName.equals(Integer.class.getTypeName())) {
-                method.invoke(excelEntityRef, Integer.parseInt(id));
-                return;
-            } else if (typeName.equals(UUID.class.getTypeName())) {
-                method.invoke(excelEntityRef, UUID.fromString(id));
-                return;
-            } else {
-                defaultMapper(excelEntityRef, id, setIdMethods, typeName);
-            }
+    protected void setExcelEntityRefId(ExcelIEEntity<?> excelEntityRef, String id, Field idField) throws InvocationTargetException, IllegalAccessException {
+        String typeName = idField.getType().getName();
+        if (typeName.equals(String.class.getTypeName())) {
+            idField.set(excelEntityRef, id);
+            return;
+        } else if (typeName.equals(Long.class.getTypeName())) {
+            idField.set(excelEntityRef, Long.parseLong(id));
+            return;
+        } else if (typeName.equals(Integer.class.getTypeName())) {
+            idField.set(excelEntityRef, Integer.parseInt(id));
+            return;
+        } else if (typeName.equals(UUID.class.getTypeName())) {
+            idField.set(excelEntityRef, UUID.fromString(id));
+            return;
+        } else {
+            defaultMapper(excelEntityRef, id, idField, typeName);
         }
-        log.warn("Could not set excel entity ref id! Make sure setId method parameter is supported!");
+
+        log.warn("Could not set excel entity ref id!");
         throw new RuntimeException("Could not set excel entity ref id!");
     }
 
-    protected void defaultMapper(ExcelIEEntity<?> excelEntityRef, String id, List<Method> setIdMethods, String typeName) {
+    protected void defaultMapper(ExcelIEEntity<?> excelEntityRef, String id, Field idField, String typeName) {
 
     }
 
