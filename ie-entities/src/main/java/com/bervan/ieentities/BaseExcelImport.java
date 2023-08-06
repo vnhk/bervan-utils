@@ -201,6 +201,9 @@ public class BaseExcelImport {
                     setter.invoke(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
                 }
             }
+        } else if (typeName.equals(String.class.getTypeName())) {
+            String value = cell.getStringCellValue();
+            setter.invoke(entity, value);
         }
 
 //        if (value instanceof String) {
