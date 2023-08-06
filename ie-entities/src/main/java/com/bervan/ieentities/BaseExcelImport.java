@@ -42,7 +42,7 @@ public class BaseExcelImport {
 
         File currDir = new File(dirPath);
         String path = currDir.getAbsolutePath();
-        String fileLocation = path.substring(0, path.length() - 1) + fileName + ".xlsx";
+        String fileLocation = path + File.separator + fileName;
 
         try (FileInputStream inputStream = new FileInputStream(fileLocation)) {
             return new XSSFWorkbook(inputStream);
