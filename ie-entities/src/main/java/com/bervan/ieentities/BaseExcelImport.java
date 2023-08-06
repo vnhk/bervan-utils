@@ -177,9 +177,11 @@ public class BaseExcelImport {
         } else if (typeName.equals(Date.class.getTypeName())) {
             setter.invoke(entity, cell.getDateCellValue());
         } else if (typeName.equals(LocalDateTime.class.getTypeName())) {
-            setter.invoke(entity, cell.getLocalDateTimeCellValue());
+            LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
+            setter.invoke(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
         } else if (typeName.equals(LocalDate.class.getTypeName())) {
-            setter.invoke(entity, cell.getLocalDateTimeCellValue().toLocalDate());
+            LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
+            setter.invoke(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
         } else if (isCollectionOfExcelEntities(typeName, parametrizedType, parametrizedSignStart, parametrizedSignEnd)) {
             String value = cell.getStringCellValue();
             if (Strings.isNotBlank(value)) {
@@ -194,8 +196,10 @@ public class BaseExcelImport {
                     excelIEEntities.add(excelEntityRef);
                 }
 
-                if (typeName.replace(parametrizedType, "").equals(List.class.getTypeName()))
-                    setter.invoke(entity, cell.getLocalDateTimeCellValue().toLocalDate());
+                if (typeName.replace(parametrizedType, "").equals(List.class.getTypeName())) {
+                    LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
+                    setter.invoke(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
+                }
             }
         }
 
