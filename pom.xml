@@ -8,11 +8,11 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.bervan</groupId>
-    <artifactId>history-tables</artifactId>
+    <artifactId>utils</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>historyTables</name>
+    <name>Utils</name>
     <url>http://maven.apache.org</url>
 
     <properties>

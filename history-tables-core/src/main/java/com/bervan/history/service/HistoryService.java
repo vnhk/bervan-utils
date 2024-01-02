@@ -177,6 +177,10 @@ public class HistoryService<ID> {
             //example in Project: User owner->owner.nick
             entityField = getField(obj, values[0]);
             obj = getObjFromPathPart(obj, entityField);
+            if (obj == null) {
+                //it can happen that previous field value was null
+                return null;
+            }
             for (int i = 1; i < values.length; i++) {
                 String fieldName = values[i];
                 entityField = getField(obj, fieldName);

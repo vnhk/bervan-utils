@@ -40,4 +40,25 @@ class InnerObjectsMappingTest {
         assertTrue(book.getHistoryEntities().contains(res));
 
     }
+
+    @Test
+    public void buildHistoryWhenInnerUserIsNull() {
+        Book book = new Book(1L, "Name A", "Summary A", null, LocalDateTime.now(), new HashSet<>());
+        AbstractBaseHistoryEntity<Long> history = historyService.buildHistory(book);
+
+        assertInstanceOf(BookHistory.class, history);
+        BookHistory res = (BookHistory) history;
+
+        assertNull(res.getId());
+
+        assertEquals(res.getName(), "Name A");
+        assertEquals(res.getSummary(), "Summary A");
+
+        //mapping
+        assertNull(res.getUserNick());
+
+        assertEquals(res.getEntity(), book);
+        assertTrue(book.getHistoryEntities().contains(res));
+
+    }
 }
