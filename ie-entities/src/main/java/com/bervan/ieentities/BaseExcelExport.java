@@ -129,7 +129,6 @@ public class BaseExcelExport {
             Integer columnIndex = getColumnNumber(sheet, fieldName);
             Integer rowIndex = getRowNumber(sheet);
             setCellValue(sheet, columnIndex, rowIndex, val);
-
         } catch (Exception e) {
             log.error("Could not export " + fieldName + "!", e);
             throw new RuntimeException(e);
@@ -141,6 +140,8 @@ public class BaseExcelExport {
             Cell cell = sheet.getRow(rowIndex).createCell(columnIndex);
             if (value instanceof String) {
                 cell.setCellValue(value.toString());
+            } else if (value instanceof Enum) {
+                cell.setCellValue(((Enum<?>) value).name());
             } else if (value instanceof Boolean) {
                 cell.setCellValue(((Boolean) value));
             } else if (value instanceof Date) {

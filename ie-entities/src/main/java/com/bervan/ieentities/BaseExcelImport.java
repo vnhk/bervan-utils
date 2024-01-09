@@ -167,14 +167,22 @@ public class BaseExcelImport {
 
         if (typeName.equals(Boolean.class.getTypeName())) {
             field.set(entity, cell.getBooleanCellValue());
+        } else if (Enum.class.isAssignableFrom(field.getType())) {
+            Class<? extends Enum> type = (Class<? extends Enum>) field.getType();
+            field.set(entity, Enum.valueOf(type, cell.getStringCellValue()));
         } else if (typeName.equals(Double.class.getTypeName())) {
             field.set(entity, cell.getNumericCellValue());
         } else if (typeName.equals(Integer.class.getTypeName())) {
             double numericCellValue = cell.getNumericCellValue();
             field.set(entity, Double.valueOf(numericCellValue).intValue());
         } else if (typeName.equals(Long.class.getTypeName())) {
-            double numericCellValue = cell.getNumericCellValue();
-            field.set(entity, Double.valueOf(numericCellValue).longValue());
+            try {
+                double numericCellValue = cell.getNumericCellValue();
+                field.set(entity, Double.valueOf(numericCellValue).longValue());
+            } catch (Exception e) {
+                String numericCellValue = cell.getStringCellValue();
+                field.set(entity, Double.valueOf(numericCellValue).longValue());
+            }
         } else if (typeName.equals(Date.class.getTypeName())) {
             field.set(entity, cell.getDateCellValue());
         } else if (typeName.equals(LocalDateTime.class.getTypeName())) {

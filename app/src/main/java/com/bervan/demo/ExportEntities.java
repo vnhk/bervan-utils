@@ -2,6 +2,7 @@ package com.bervan.demo;
 
 import com.bervan.demo.autoconfiguration.model.ProjectHistoryTwo;
 import com.bervan.demo.autoconfiguration.model.ProjectTwo;
+import com.bervan.demo.autoconfiguration.model.ProjectType;
 import com.bervan.demo.autoconfiguration.model.UserTwo;
 import com.bervan.ieentities.BaseExcelExport;
 import com.bervan.ieentities.BaseExcelImport;
@@ -59,6 +60,7 @@ public class ExportEntities {
                     .id(i)
                     .name("App project_" + i)
                     .description("This is project about application_" + i)
+                    .type(ProjectType.EDUCATION)
                     .creator(creator)
                     .build());
             if(creator.getCreatedProjects() == null)

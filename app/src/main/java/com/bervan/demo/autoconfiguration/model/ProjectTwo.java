@@ -4,6 +4,7 @@ import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.HistoryCollection;
 import com.bervan.history.model.HistorySupported;
 import com.bervan.ieentities.ExcelIEEntity;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
 
 import javax.persistence.*;
@@ -26,6 +27,8 @@ public class ProjectTwo implements AbstractBaseEntity<Long>, ExcelIEEntity<Long>
 
     private String name;
     private String description;
+    @Enumerated(EnumType.STRING)
+    private ProjectType type;
     @ManyToOne
     private UserTwo creator;
     @OneToMany
