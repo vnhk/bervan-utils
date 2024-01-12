@@ -139,7 +139,7 @@ public class BaseExcelExport {
         if (value != null) {
             Cell cell = sheet.getRow(rowIndex).createCell(columnIndex);
             if (value instanceof String) {
-                cell.setCellValue(value.toString());
+                cell.setCellValue(processStringIfLarge(sheet, columnIndex, rowIndex, value));
             } else if (value instanceof Enum) {
                 cell.setCellValue(((Enum<?>) value).name());
             } else if (value instanceof Boolean) {
@@ -186,6 +186,29 @@ public class BaseExcelExport {
                 }
             }
         }
+    }
+
+    private String processStringIfLarge(Sheet ownerSheet, Integer columnIndex, Integer rowIndex, Object value) {
+        String string = value.toString();
+        if (string.length() > 30000) {
+            log.info("Text value is to big to be exported to one cell because of the excel limit.");
+            int neededParts = string.length() / 30000;
+            log.info("Text will be divided into " + neededParts + " parts.");
+            Sheet sheet = getSheet("LargeTextParts");
+            String keyBase = "LargeTextParts" + "_" + ownerSheet.getSheetName() + "_" + columnIndex + "_" + rowIndex + "_";
+            for (int i = 0; i < neededParts; i++) {
+                int lastRowNum = sheet.getLastRowNum();
+                Row row = sheet.createRow(lastRowNum + 1);
+                row.createCell(0).setCellValue(keyBase + i);
+                int beginIndex = i * 30000;
+                int endIndex = beginIndex + 30000;
+                if (endIndex > string.length()) {
+                    endIndex = string.length();
+                }
+                row.createCell(1).setCellValue(string.substring(beginIndex, endIndex));
+            }
+        }
+        return string;
     }
 
     protected Integer getRowNumber(Sheet sheet) {
