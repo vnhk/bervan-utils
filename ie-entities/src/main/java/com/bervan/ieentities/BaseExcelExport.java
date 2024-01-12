@@ -21,6 +21,8 @@ public class BaseExcelExport {
     private final Map<String, Integer> columnIndexForField = new HashMap<>();
     private final Map<String, Integer> lastColumnIndexForSheet = new HashMap<>();
     private final Map<Class<? extends ExcelIEEntity<?>>, List<Object>> processedEntities = new HashMap<>();
+    private final int MAX_TEXT_LENGTH = 30000;
+    private final String LARGE_TEXT_PARTS_SHEET = "LargeTextParts";
     private Workbook workbook;
 
     public File save(Workbook workbook, String dirPath, String fileName) {
@@ -51,6 +53,7 @@ public class BaseExcelExport {
 
     public Workbook exportExcel(List<? extends ExcelIEEntity<?>> entities, Workbook workbook) {
         this.workbook = Objects.requireNonNullElseGet(workbook, XSSFWorkbook::new);
+        buildLargeTextPartsSheet();
 
         for (ExcelIEEntity<?> entity : entities) {
             if (entity.getId() == null) {
@@ -68,6 +71,13 @@ public class BaseExcelExport {
         }
 
         return this.workbook;
+    }
+
+    private void buildLargeTextPartsSheet() {
+        Sheet largeTextRefs = getSheet(LARGE_TEXT_PARTS_SHEET);
+        Row row = largeTextRefs.createRow(0);
+        row.createCell(0).setCellValue("RefKeyPart");
+        row.createCell(1).setCellValue("PartValue");
     }
 
     private void appendProcessedEntity(ExcelIEEntity<?> entity) {
@@ -190,24 +200,29 @@ public class BaseExcelExport {
 
     private String processStringIfLarge(Sheet ownerSheet, Integer columnIndex, Integer rowIndex, Object value) {
         String string = value.toString();
-        if (string.length() > 30000) {
+        if (string.length() > MAX_TEXT_LENGTH) {
             log.info("Text value is to big to be exported to one cell because of the excel limit.");
-            int neededParts = string.length() / 30000;
+            int neededParts = string.length() / MAX_TEXT_LENGTH;
+            if (neededParts * MAX_TEXT_LENGTH < string.length()) {
+                neededParts++;
+            }
             log.info("Text will be divided into " + neededParts + " parts.");
-            Sheet sheet = getSheet("LargeTextParts");
-            String keyBase = "LargeTextParts" + "_" + ownerSheet.getSheetName() + "_" + columnIndex + "_" + rowIndex + "_";
+            Sheet sheet = getSheet(LARGE_TEXT_PARTS_SHEET);
+            String keyReference = LARGE_TEXT_PARTS_SHEET + "_" + ownerSheet.getSheetName() + "_" + columnIndex + "_" + rowIndex + "_";
             for (int i = 0; i < neededParts; i++) {
                 int lastRowNum = sheet.getLastRowNum();
                 Row row = sheet.createRow(lastRowNum + 1);
-                row.createCell(0).setCellValue(keyBase + i);
-                int beginIndex = i * 30000;
-                int endIndex = beginIndex + 30000;
+                row.createCell(0).setCellValue(keyReference + i);
+                int beginIndex = i * MAX_TEXT_LENGTH;
+                int endIndex = beginIndex + MAX_TEXT_LENGTH;
                 if (endIndex > string.length()) {
                     endIndex = string.length();
                 }
                 row.createCell(1).setCellValue(string.substring(beginIndex, endIndex));
             }
+            return keyReference;
         }
+
         return string;
     }
 
