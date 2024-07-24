@@ -56,6 +56,10 @@ public class Book implements AbstractBaseEntity<Long> {
         this.history = history;
     }
 
+    public Book() {
+
+    }
+
     @Override
     public LocalDateTime getModificationDate() {
         return modificationDate;

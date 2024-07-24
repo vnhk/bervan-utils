@@ -130,7 +130,7 @@ public class HistoryService<ID> {
             setFieldVal(historyEntity, historyField, val);
         } catch (Exception e) {
 //            log.error("Could not copy " + historyField.getName() + "!", e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Could not copy " + historyField.getName() + "!", e);
         }
     }
 
@@ -147,7 +147,7 @@ public class HistoryService<ID> {
             return targetHistoryEntityClass.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
 //            log.error("History entity must have no args public constructor!", e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("History entity must have no args public constructor!", e);
         }
     }
 

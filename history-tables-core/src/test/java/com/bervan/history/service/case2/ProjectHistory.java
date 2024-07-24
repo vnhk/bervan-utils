@@ -28,6 +28,10 @@ public class ProjectHistory implements AbstractBaseHistoryEntity<UUID> {
 
     private LocalDateTime updateDate;
 
+    public ProjectHistory() {
+
+    }
+
     public ProjectHistory(UUID id, String name, String summary, String description, BigDecimal price, Integer importance, ProjectStatus status, LocalDateTime updateDate, Project project) {
         this.id = id;
         this.name = name;

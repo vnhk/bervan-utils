@@ -16,6 +16,10 @@ public class BookHistory implements AbstractBaseHistoryEntity<Long> {
     @HistoryField(savePath = "user.nick")
     private String userNick;
 
+    public BookHistory() {
+
+    }
+
     //relation
     private Book book;
     private LocalDateTime updateDate;
