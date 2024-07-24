@@ -6,7 +6,6 @@ import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.model.HistoryField;
 import com.bervan.history.model.Persistable;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 
 import java.lang.reflect.Field;
@@ -15,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
 public class HistoryService<ID> {
     public AbstractBaseHistoryEntity<ID> buildHistory(AbstractBaseEntity<ID> baseEntity) {
         AbstractBaseHistoryEntity<ID> historyEntity = initHistoryEntity(baseEntity);
@@ -37,7 +35,7 @@ public class HistoryService<ID> {
             return diffAttributes;
 
         } catch (Exception e) {
-            log.error("Diff cannot be performed!", e);
+//            log.error("Diff cannot be performed!", e);
             throw new RuntimeException("Diff cannot be performed!");
         }
     }
@@ -131,7 +129,7 @@ public class HistoryService<ID> {
             Object val = getVal(baseEntity, historyField);
             setFieldVal(historyEntity, historyField, val);
         } catch (Exception e) {
-            log.error("Could not copy " + historyField.getName() + "!", e);
+//            log.error("Could not copy " + historyField.getName() + "!", e);
             throw new RuntimeException(e);
         }
     }
@@ -148,7 +146,7 @@ public class HistoryService<ID> {
         try {
             return targetHistoryEntityClass.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            log.error("History entity must have no args public constructor!", e);
+//            log.error("History entity must have no args public constructor!", e);
             throw new RuntimeException(e);
         }
     }

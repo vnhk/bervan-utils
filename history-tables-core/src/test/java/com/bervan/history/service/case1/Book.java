@@ -2,17 +2,11 @@ package com.bervan.history.service.case1;
 
 import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 
-@Getter
-@Setter
-@Builder
 public class Book implements AbstractBaseEntity<Long> {
 
     private Long id;
@@ -22,6 +16,14 @@ public class Book implements AbstractBaseEntity<Long> {
 
     //history
     private Set<BookHistory> history;
+
+    public Book(Long id, String name, String summary, LocalDateTime modificationDate, Set<BookHistory> history) {
+        this.id = id;
+        this.name = name;
+        this.summary = summary;
+        this.modificationDate = modificationDate;
+        this.history = history;
+    }
 
     @Override
     public LocalDateTime getModificationDate() {
@@ -56,5 +58,21 @@ public class Book implements AbstractBaseEntity<Long> {
     @Override
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
     }
 }

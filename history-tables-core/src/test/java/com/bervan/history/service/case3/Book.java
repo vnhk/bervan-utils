@@ -2,17 +2,11 @@ package com.bervan.history.service.case3;
 
 import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 
-@Getter
-@Setter
-@Builder
 public class Book implements AbstractBaseEntity<Long> {
 
     private Long id;
@@ -20,6 +14,47 @@ public class Book implements AbstractBaseEntity<Long> {
     private String summary;
     private User user;
     private LocalDateTime modificationDate;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Set<BookHistory> getHistory() {
+        return history;
+    }
+
+    public void setHistory(Set<BookHistory> history) {
+        this.history = history;
+    }
+
+    public Book(Long id, String name, String summary, User user, LocalDateTime modificationDate, Set<BookHistory> history) {
+        this.id = id;
+        this.name = name;
+        this.summary = summary;
+        this.user = user;
+        this.modificationDate = modificationDate;
+        this.history = history;
+    }
 
     @Override
     public LocalDateTime getModificationDate() {

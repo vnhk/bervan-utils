@@ -1,13 +1,21 @@
 package com.bervan.history.diff.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@AllArgsConstructor
-@Getter
 public class DiffWord {
     private final String value;
     private final DiffType type;
+
+    public DiffWord(String value, DiffType type) {
+        this.value = value;
+        this.type = type;
+    }
+
+    public DiffType getType() {
+        return type;
+    }
+
+    public String getValue() {
+        return value;
+    }
 
     @Override
     public String toString() {

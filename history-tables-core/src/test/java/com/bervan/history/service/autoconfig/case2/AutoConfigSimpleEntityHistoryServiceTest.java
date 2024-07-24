@@ -22,15 +22,12 @@ public class AutoConfigSimpleEntityHistoryServiceTest {
     public void buildHistory() {
         UUID uuid = UUID.randomUUID();
 
-        Project moodleProject = Project.builder()
-                .name("Moodle")
-                .summary("Half-Free Web Learning System")
-                .description("This project is about creating web application that supports remote learning.")
-                .price(BigDecimal.valueOf(150))
-                .status(ProjectStatus.IN_PROGRESS)
-                .importance(5)
-                .id(uuid)
-                .build();
+        Project moodleProject = new Project(uuid, "Moodle"
+                , "Half-Free Web Learning System"
+                , "This project is about creating web application that supports remote learning.",
+                BigDecimal.valueOf(150),
+                5,
+                ProjectStatus.IN_PROGRESS);
 
         AbstractBaseHistoryEntity<UUID> history =
                 historyService.buildHistory(moodleProject);
@@ -54,15 +51,8 @@ public class AutoConfigSimpleEntityHistoryServiceTest {
 
     @Test
     public void buildHistoryNullableSimpleAttributes() {
-        Project moodleProject = Project.builder()
-                .name(null)
-                .summary("Half-Free Web Learning System")
-                .description(null)
-                .price(null)
-                .status(null)
-                .importance(null)
-                .id(null)
-                .build();
+        Project moodleProject =new Project();
+        moodleProject.setSummary("Half-Free Web Learning System");
 
         AbstractBaseHistoryEntity<UUID> history =
                 historyService.buildHistory(moodleProject);

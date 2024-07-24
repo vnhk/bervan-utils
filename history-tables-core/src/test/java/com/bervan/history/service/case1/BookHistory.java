@@ -3,15 +3,9 @@ package com.bervan.history.service.case1;
 import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.model.HistoryField;
-import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class BookHistory implements AbstractBaseHistoryEntity<Long> {
     //project history id if want to save it to the database
     private Long id;
@@ -23,6 +17,18 @@ public class BookHistory implements AbstractBaseHistoryEntity<Long> {
     //relation
     private Book book;
     private LocalDateTime updateDate;
+
+    public BookHistory(Long id, String name, String summary, Book book, LocalDateTime updateDate) {
+        this.id = id;
+        this.name = name;
+        this.summary = summary;
+        this.book = book;
+        this.updateDate = updateDate;
+    }
+
+    public BookHistory() {
+
+    }
 
     @Override
     public LocalDateTime getUpdateDate() {
@@ -52,5 +58,21 @@ public class BookHistory implements AbstractBaseHistoryEntity<Long> {
     @Override
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
     }
 }
