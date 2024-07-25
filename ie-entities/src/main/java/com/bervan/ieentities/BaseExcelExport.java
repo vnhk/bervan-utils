@@ -1,6 +1,5 @@
 package com.bervan.ieentities;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -16,7 +15,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Slf4j
 public class BaseExcelExport {
     private final Map<String, Integer> columnIndexForField = new HashMap<>();
     private final Map<String, Integer> lastColumnIndexForSheet = new HashMap<>();
@@ -28,12 +26,12 @@ public class BaseExcelExport {
     public File save(Workbook workbook, String dirPath, String fileName) {
         if (Strings.isBlank(dirPath)) {
             dirPath = ".";
-            log.warn("Directory path is empty. Workbook will be saved in current directory.");
+//            log.warn("Directory path is empty. Workbook will be saved in current directory.");
         }
 
         if (Strings.isBlank(fileName)) {
             fileName = "temp";
-            log.warn("Filename is empty. Workbook will be saved as temp.xlsx.");
+//            log.warn("Filename is empty. Workbook will be saved as temp.xlsx.");
         }
 
 
@@ -45,7 +43,7 @@ public class BaseExcelExport {
         try (FileOutputStream outputStream = new FileOutputStream(toSave)) {
             workbook.write(outputStream);
         } catch (Exception e) {
-            log.error("Cannot save workbook!", e);
+            throw new RuntimeException("Cannot save workbook!", e);
         }
 
         return toSave;
@@ -61,7 +59,7 @@ public class BaseExcelExport {
             }
 
             if (processedEntities.get(entity.getClass()) != null && processedEntities.get(entity.getClass()).contains(entity.getId())) {
-                log.info("Entity " + entity.getClass().getSimpleName() + " with id = " + entity.getId() + " already exported. Skip.");
+//                log.info("Entity " + entity.getClass().getSimpleName() + " with id = " + entity.getId() + " already exported. Skip.");
                 continue;
             }
 
@@ -140,8 +138,7 @@ public class BaseExcelExport {
             Integer rowIndex = getRowNumber(sheet);
             setCellValue(sheet, columnIndex, rowIndex, val);
         } catch (Exception e) {
-            log.error("Could not export " + fieldName + "!", e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Could not export " + fieldName + "!", e);
         }
     }
 
@@ -184,7 +181,7 @@ public class BaseExcelExport {
                         sb.append(((ExcelIEEntity<?>) next).getId());
                         sb.append(",");
                     } else {
-                        log.warn("Value is a non ExcelEntity collection. Will not be processed. Create custom exporter!");
+//                        log.warn("Value is a non ExcelEntity collection. Will not be processed. Create custom exporter!");
                         return;
                     }
                 }
@@ -201,12 +198,12 @@ public class BaseExcelExport {
     private String processStringIfLarge(Sheet ownerSheet, Integer columnIndex, Integer rowIndex, Object value) {
         String string = value.toString();
         if (string.length() > MAX_TEXT_LENGTH) {
-            log.info("Text value is to big to be exported to one cell because of the excel limit.");
+//            log.info("Text value is to big to be exported to one cell because of the excel limit.");
             int neededParts = string.length() / MAX_TEXT_LENGTH;
             if (neededParts * MAX_TEXT_LENGTH < string.length()) {
                 neededParts++;
             }
-            log.info("Text will be divided into " + neededParts + " parts.");
+//            log.info("Text will be divided into " + neededParts + " parts.");
             Sheet sheet = getSheet(LARGE_TEXT_PARTS_SHEET);
             String keyReference = LARGE_TEXT_PARTS_SHEET + "_" + ownerSheet.getSheetName() + "_" + columnIndex + "_" + rowIndex + "_";
             for (int i = 0; i < neededParts; i++) {

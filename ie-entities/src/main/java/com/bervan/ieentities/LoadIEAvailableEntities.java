@@ -1,19 +1,15 @@
 package com.bervan.ieentities;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.*;
 
-@Slf4j
 public class LoadIEAvailableEntities {
 
     public List<Class<?>> getSubclassesOfExcelEntity(String... basePackages) {
         if (basePackages == null || basePackages.length < 1) {
-            log.error("At least one base package should be provided!");
             throw new RuntimeException("At least one base package should be provided!");
         }
         List<Class<?>> subclasses = new ArrayList<>();
@@ -59,8 +55,7 @@ public class LoadIEAvailableEntities {
                         classes.add(clazz);
                     }
                 } catch (ClassNotFoundException e) {
-                    log.error("Could not load class: " + classPath);
-                    throw new RuntimeException(e);
+                    throw new RuntimeException("Could not load class: " + classPath);
                 }
             }
         }

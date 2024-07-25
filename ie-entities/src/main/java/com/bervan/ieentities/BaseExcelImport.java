@@ -1,6 +1,5 @@
 package com.bervan.ieentities;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -17,7 +16,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Slf4j
 public class BaseExcelImport {
     private final Map<Class<? extends ExcelIEEntity<?>>, List<Object>> processedEntities = new HashMap<>();
     private final Map<Class<?>, Sheet> sheets = new HashMap<>();
@@ -31,12 +29,12 @@ public class BaseExcelImport {
     public Workbook load(String dirPath, String fileName) {
         if (Strings.isBlank(dirPath)) {
             dirPath = ".";
-            log.warn("Directory path is empty. Workbook will be saved in current directory.");
+//            log.warn("Directory path is empty. Workbook will be saved in current directory.");
         }
 
         if (Strings.isBlank(fileName)) {
             fileName = "temp";
-            log.warn("Filename is empty. Workbook will be saved as temp.xlsx.");
+//            log.warn("Filename is empty. Workbook will be saved as temp.xlsx.");
         }
 
 
@@ -47,8 +45,7 @@ public class BaseExcelImport {
         try (FileInputStream inputStream = new FileInputStream(fileLocation)) {
             return new XSSFWorkbook(inputStream);
         } catch (Exception e) {
-            log.error("Cannot load workbook!", e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Cannot load workbook!", e);
         }
     }
 
@@ -56,8 +53,7 @@ public class BaseExcelImport {
         try (FileInputStream inputStream = new FileInputStream(file)) {
             return new XSSFWorkbook(inputStream);
         } catch (Exception e) {
-            log.error("Cannot load workbook!", e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Cannot load workbook!", e);
         }
     }
 
@@ -70,8 +66,7 @@ public class BaseExcelImport {
                 importData(classSheetEntry.getKey(), classSheetEntry.getValue());
             }
         } catch (Exception e) {
-            log.error("Import failed!", e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Import failed!", e);
         }
         return entities;
     }
@@ -97,7 +92,7 @@ public class BaseExcelImport {
     }
 
     private void fillData(ExcelIEEntity<?> entity, int rowNumber, List<String> headerNames, Map<String, Field> fields, Sheet sheet) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
-        log.info("Importing row: " + rowNumber + " for " + sheet.getSheetName());
+//        log.info("Importing row: " + rowNumber + " for " + sheet.getSheetName());
         Row row = sheet.getRow(rowNumber);
         for (int i = 0; i < headerNames.size(); i++) {
             String columnName = headerNames.get(i);
@@ -131,8 +126,7 @@ public class BaseExcelImport {
         try {
             return (ExcelIEEntity<?>) cl.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            log.error("Entity must have no args constructor!", e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Entity must have no args constructor!", e);
         }
     }
 
@@ -146,7 +140,7 @@ public class BaseExcelImport {
             if (classToImport.isPresent()) {
                 sheets.put(classToImport.get(), sheet);
             } else {
-                log.warn("Could not find available class for class name:" + sheet.getSheetName() + ". Skipping.");
+//                log.warn("Could not find available class for class name:" + sheet.getSheetName() + ". Skipping.");
             }
         }
     }
@@ -216,49 +210,6 @@ public class BaseExcelImport {
         }
         field.setAccessible(false);
 
-//        if (value instanceof String) {
-//            cell.setCellValue(value.toString());
-//        } else if (value instanceof Boolean) {
-//            cell.setCellValue(((Boolean) value));
-//        } else if (value instanceof Date) {
-//            cell.setCellValue(((Date) value));
-//        } else if (value instanceof LocalDateTime) {
-//            cell.setCellValue(((LocalDateTime) value));
-//        } else if (value instanceof LocalDate) {
-//            cell.setCellValue(((LocalDate) value));
-//        } else if (value instanceof Double) {
-//            cell.setCellValue(((Double) value));
-//        } else if (value instanceof Long) {
-//            cell.setCellValue(((Long) value));
-//        } else if (value instanceof ExcelIEEntity) {
-//            cell.setCellValue(String.valueOf(((ExcelIEEntity<?>) value).getId()));
-//            exportExcel(Collections.singletonList(((ExcelIEEntity<?>) value)), workbook);
-//        } else if (value instanceof Collection && ((Collection<?>) value).size() > 0) {
-//            StringBuilder sb = new StringBuilder();
-//            Iterator<?> iterator = ((Collection<?>) value).iterator();
-//            Class<?> elementClass = null;
-//            while (iterator.hasNext()) {
-//
-//                Object next = iterator.next();
-//                if (elementClass == null) {
-//                    elementClass = next.getClass();
-//                }
-//
-//                if (elementClass == next.getClass() && next instanceof ExcelIEEntity) {
-//                    sb.append(((ExcelIEEntity<?>) next).getId());
-//                    sb.append(",");
-//                } else {
-//                    log.warn("Value is a non ExcelEntity collection. Will not be processed. Create custom exporter!");
-//                    return;
-//                }
-//            }
-//
-//            if (sb.length() > 0) {
-//                String idsSeparatedByComma = sb.toString();
-//                idsSeparatedByComma = idsSeparatedByComma.substring(0, idsSeparatedByComma.length() - 1);
-//                cell.setCellValue(idsSeparatedByComma);
-//            }
-//        }
     }
 
     protected void setExcelEntityRefId(ExcelIEEntity<?> excelEntityRef, String id, Field idField) throws InvocationTargetException, IllegalAccessException {
@@ -279,7 +230,6 @@ public class BaseExcelImport {
             defaultMapper(excelEntityRef, id, idField, typeName);
         }
 
-        log.warn("Could not set excel entity ref id!");
         throw new RuntimeException("Could not set excel entity ref id!");
     }
 
