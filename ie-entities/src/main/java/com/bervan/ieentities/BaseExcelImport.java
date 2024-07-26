@@ -80,10 +80,16 @@ public class BaseExcelImport {
             fieldsForColumn.put(headerName, getFieldForHeaderName(fieldsToImportData, headerName));
         }
 
-        for (int i = 1; i < lastRowNum; i++) {
-            ExcelIEEntity<?> excelIEEntity = initEntity(entity);
-            fillData(excelIEEntity, i, headerNames, fieldsForColumn, sheet);
-            entities.add(excelIEEntity);
+        int i = 1;
+        for (; i < lastRowNum; i++) {
+            Row row = sheet.getRow(i);
+            if (row != null) {
+                ExcelIEEntity<?> excelIEEntity = initEntity(entity);
+                fillData(excelIEEntity, row, headerNames, fieldsForColumn, sheet);
+                entities.add(excelIEEntity);
+            } else {
+                break;
+            }
         }
     }
 
@@ -91,9 +97,8 @@ public class BaseExcelImport {
         return fieldsToImportData.stream().filter(e -> e.getName().equalsIgnoreCase(headerName)).findFirst().get();
     }
 
-    private void fillData(ExcelIEEntity<?> entity, int rowNumber, List<String> headerNames, Map<String, Field> fields, Sheet sheet) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
+    private void fillData(ExcelIEEntity<?> entity, Row row, List<String> headerNames, Map<String, Field> fields, Sheet sheet) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
 //        log.info("Importing row: " + rowNumber + " for " + sheet.getSheetName());
-        Row row = sheet.getRow(rowNumber);
         for (int i = 0; i < headerNames.size(); i++) {
             String columnName = headerNames.get(i);
             Cell cell = row.getCell(i);
@@ -165,10 +170,21 @@ public class BaseExcelImport {
             Class<? extends Enum> type = (Class<? extends Enum>) field.getType();
             field.set(entity, Enum.valueOf(type, cell.getStringCellValue()));
         } else if (typeName.equals(Double.class.getTypeName())) {
-            field.set(entity, cell.getNumericCellValue());
+            try {
+                double numericCellValue = cell.getNumericCellValue();
+                field.set(entity, numericCellValue);
+            } catch (Exception e) {
+                String numericCellValue = cell.getStringCellValue();
+                field.set(entity, Double.valueOf(numericCellValue));
+            }
         } else if (typeName.equals(Integer.class.getTypeName())) {
-            double numericCellValue = cell.getNumericCellValue();
-            field.set(entity, Double.valueOf(numericCellValue).intValue());
+            try {
+                double numericCellValue = cell.getNumericCellValue();
+                field.set(entity, Double.valueOf(numericCellValue).intValue());
+            } catch (Exception e) {
+                String numericCellValue = cell.getStringCellValue();
+                field.set(entity, Double.valueOf(numericCellValue).intValue());
+            }
         } else if (typeName.equals(Long.class.getTypeName())) {
             try {
                 double numericCellValue = cell.getNumericCellValue();
@@ -181,7 +197,7 @@ public class BaseExcelImport {
             field.set(entity, cell.getDateCellValue());
         } else if (typeName.equals(LocalDateTime.class.getTypeName())) {
             LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
-            field.set(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
+            field.set(entity, localDateTimeCellValue);
         } else if (typeName.equals(LocalDate.class.getTypeName())) {
             LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
             field.set(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
@@ -204,12 +220,19 @@ public class BaseExcelImport {
                     field.set(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
                 }
             }
+        } else if (typeName.equals(UUID.class.getTypeName())) {
+            String value = cell.getStringCellValue();
+            field.set(entity, UUID.fromString(value));
         } else if (typeName.equals(String.class.getTypeName())) {
             String value = cell.getStringCellValue();
             field.set(entity, value);
         }
         field.setAccessible(false);
 
+    }
+
+    private static double getNumericCellValue(Cell cell) {
+        return cell.getNumericCellValue();
     }
 
     protected void setExcelEntityRefId(ExcelIEEntity<?> excelEntityRef, String id, Field idField) throws InvocationTargetException, IllegalAccessException {
