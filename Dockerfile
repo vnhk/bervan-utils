@@ -1,4 +1,4 @@
-FROM maven:3-openjdk-11-slim as builder
+FROM maven:3.8.5-openjdk-17 as builder
 
 WORKDIR /build
 
