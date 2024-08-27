@@ -5,19 +5,19 @@ WORKDIR /build
 # Copy the dependency specifications
 COPY pom.xml pom.xml
 COPY app/pom.xml app/pom.xml
-COPY dto-core/pom.xml dto-core/pom.xml
+COPY core/pom.xml core/pom.xml
 COPY history-tables-core/pom.xml history-tables-core/pom.xml
 
 # Resolve dependencies for `dto-core` module, e.g., shared libraries
 # Also build all the required projects needed by the dto-core module.
 # In this case, it will also resolve dependencies for the `root` module.
 RUN mvn -q -ntp -B -pl dto-core -am dependency:go-offline
-# Copy full sources for `dto-core` module
-COPY dto-core dto-core
+# Copy full sources for `core` module
+COPY core core
 # Install the dto-core module in the local Maven repo (`.m2`)
 # This will also install the `root` module.
 # See: `la -lat ~/.m2/repository/org/example/*/*`
-RUN mvn -q -B -pl dto-core install
+RUN mvn -q -B -pl core install
 
 # Resolve dependencies for `history-tables-core` module, e.g., shared libraries
 # Also build all the required projects needed by the history-tables-core module.
@@ -35,7 +35,7 @@ RUN mvn -q -ntp -B -pl app -am dependency:go-offline
 # Copy sources for main application
 COPY app app
 # Package the common and application modules together
-RUN mvn -q -ntp -B -pl dto-core,history-tables-core,app package
+RUN mvn -q -ntp -B -pl core,history-tables-core,app package
 
 RUN mkdir -p /jar-layers
 WORKDIR /jar-layers
