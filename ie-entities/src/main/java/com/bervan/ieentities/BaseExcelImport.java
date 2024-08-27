@@ -1,5 +1,6 @@
 package com.bervan.ieentities;
 
+import com.bervan.core.model.BervanLogger;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -9,6 +10,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
@@ -21,20 +23,22 @@ public class BaseExcelImport {
     private final Map<Class<?>, Sheet> sheets = new HashMap<>();
     private final List entities = new ArrayList<>();
     private final List<Class<?>> classesSupportsImport;
+    private final BervanLogger log;
 
-    public BaseExcelImport(List<Class<?>> classesSupportsImport) {
+    public BaseExcelImport(List<Class<?>> classesSupportsImport, BervanLogger log) {
         this.classesSupportsImport = classesSupportsImport;
+        this.log = log;
     }
 
     public Workbook load(String dirPath, String fileName) {
         if (Strings.isBlank(dirPath)) {
             dirPath = ".";
-//            log.warn("Directory path is empty. Workbook will be saved in current directory.");
+            log.warn("Directory path is empty. Workbook will be saved in current directory.");
         }
 
         if (Strings.isBlank(fileName)) {
             fileName = "temp";
-//            log.warn("Filename is empty. Workbook will be saved as temp.xlsx.");
+            log.warn("Filename is empty. Workbook will be saved as temp.xlsx.");
         }
 
 
@@ -57,6 +61,14 @@ public class BaseExcelImport {
         }
     }
 
+    public Workbook load(FileInputStream fileInputStream) {
+        try {
+            return new XSSFWorkbook(fileInputStream);
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot load workbook!", e);
+        }
+    }
+
     // TODO: 30/07/2023 Add additional excel row id column used for identifying processed rows instead on using and requiring entity id
     //  - it would allow to import data without requirement of providing entity Id
     public List<?> importExcel(Workbook workbook) {
@@ -73,6 +85,8 @@ public class BaseExcelImport {
 
     protected void importData(Class<?> entity, Sheet sheet) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
         int lastRowNum = sheet.getLastRowNum();
+        log.info("Importing " + sheet.getSheetName() + "....");
+        log.info("Rows to be imported: " + lastRowNum);
         List<String> headerNames = getHeaderNames(sheet);
         List<Field> fieldsToImportData = getFieldsToImportData(entity, headerNames);
         Map<String, Field> fieldsForColumn = new HashMap<>();
@@ -83,11 +97,13 @@ public class BaseExcelImport {
         int i = 1;
         for (; i < lastRowNum; i++) {
             Row row = sheet.getRow(i);
+            log.debug("Processing row: " + i);
             if (row != null) {
                 ExcelIEEntity<?> excelIEEntity = initEntity(entity);
                 fillData(excelIEEntity, row, headerNames, fieldsForColumn, sheet);
                 entities.add(excelIEEntity);
             } else {
+                log.debug("Processing ended on row: " + i);
                 break;
             }
         }
@@ -98,7 +114,7 @@ public class BaseExcelImport {
     }
 
     private void fillData(ExcelIEEntity<?> entity, Row row, List<String> headerNames, Map<String, Field> fields, Sheet sheet) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
-//        log.info("Importing row: " + rowNumber + " for " + sheet.getSheetName());
+        log.info("Importing row: " + row.getRowNum() + " for " + sheet.getSheetName());
         for (int i = 0; i < headerNames.size(); i++) {
             String columnName = headerNames.get(i);
             Cell cell = row.getCell(i);
@@ -144,10 +160,13 @@ public class BaseExcelImport {
 
             if (classToImport.isPresent()) {
                 sheets.put(classToImport.get(), sheet);
+                log.debug("Sheet: " + sheet.getSheetName() + " will be used for importing data for " + classToImport.get().getName());
             } else {
-//                log.warn("Could not find available class for class name:" + sheet.getSheetName() + ". Skipping.");
+                log.warn("Could not find available class for class name:" + sheet.getSheetName() + ". Skipping.");
             }
         }
+
+        log.info("Found " + sheets.size() + " to be imported!");
     }
 
     protected void setValue(Cell cell, ExcelIEEntity<?> entity, Field field)
