@@ -111,10 +111,12 @@ public class BaseExcelImport {
 
     private int getLastRowNum(Sheet sheet) {
         int lastRowNum = sheet.getLastRowNum();
-        int curr = 0;
+        int curr = 1;
         for (; curr < lastRowNum; curr++) {
             try {
-                sheet.getRow(curr).getCell(0).getNumericCellValue();
+                if (sheet.getRow(curr).getCell(0).getNumericCellValue() < 1) {
+                    return curr;
+                }
             } catch (Exception e) {
                 return curr;
             }
