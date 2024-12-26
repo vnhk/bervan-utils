@@ -9,6 +9,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -106,8 +107,9 @@ public class BaseExcelExport {
         Row row = sheet.getRow(0);
         if (row == null) {
             row = sheet.createRow(0);
-            row.createCell(0).setCellValue(getIdHeaderName());
-            int columnCount = 1;
+            row.createCell(0).setCellValue("#");
+            row.createCell(1).setCellValue(getIdHeaderName());
+            int columnCount = 2;
             for (Method getter : getters) {
                 String fieldName = getter.getName().split("get")[1];
                 row.createCell(columnCount).setCellValue(fieldName);
@@ -122,7 +124,8 @@ public class BaseExcelExport {
 
     protected void createCellWithId(ExcelIEEntity<?> entity, Sheet sheet) {
         Integer rowNumber = getRowNumber(sheet);
-        sheet.getRow(rowNumber).createCell(0).setCellValue(entity.getId().toString());
+        sheet.getRow(rowNumber).createCell(0).setCellValue(rowNumber);
+        sheet.getRow(rowNumber).createCell(1).setCellValue(entity.getId().toString());
     }
 
     protected void nextRowNumber(Sheet sheet) {
@@ -242,10 +245,13 @@ public class BaseExcelExport {
     }
 
     protected List<Method> getGettersToExportData(Object object) {
+        Set<String> fields = Arrays.stream(object.getClass().getDeclaredFields())
+                .map(Field::getName).map(String::toLowerCase).collect(Collectors.toSet());
         return Arrays.stream(object.getClass().getDeclaredMethods())
                 .filter(e -> !e.isAnnotationPresent(ExcelIgnore.class))
                 .filter(e -> !e.getName().equals("getId"))
                 .filter(e -> e.getName().startsWith("get"))
+                .filter(e -> fields.contains(e.getName().replace("get", "").toLowerCase()))
                 .collect(Collectors.toList());
     }
 
@@ -260,7 +266,7 @@ public class BaseExcelExport {
             String lastColumnIndexForSheetKey = sheet.getSheetName() + ":" + sheet.getLastRowNum();
             Integer lastUsedColumnIndex = lastColumnIndexForSheet.get(lastColumnIndexForSheetKey);
             if (lastUsedColumnIndex == null) {
-                lastUsedColumnIndex = 1;
+                lastUsedColumnIndex = 2; //[#,id,X]
             } else {
                 lastUsedColumnIndex++;
             }

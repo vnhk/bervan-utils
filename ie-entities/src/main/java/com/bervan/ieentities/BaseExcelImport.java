@@ -84,7 +84,7 @@ public class BaseExcelImport {
     }
 
     protected void importData(Class<?> entity, Sheet sheet) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
-        int lastRowNum = sheet.getLastRowNum();
+        int lastRowNum = getLastRowNum(sheet);
         log.info("Importing " + sheet.getSheetName() + "....");
         log.info("Rows to be imported: " + lastRowNum);
         List<String> headerNames = getHeaderNames(sheet);
@@ -107,6 +107,19 @@ public class BaseExcelImport {
                 break;
             }
         }
+    }
+
+    private int getLastRowNum(Sheet sheet) {
+        int lastRowNum = sheet.getLastRowNum();
+        int curr = 0;
+        for (; curr < lastRowNum; curr++) {
+            try {
+                sheet.getRow(curr).getCell(0).getNumericCellValue();
+            } catch (Exception e) {
+                return curr;
+            }
+        }
+        return lastRowNum;
     }
 
     private Field getFieldForHeaderName(List<Field> fieldsToImportData, String headerName) {
