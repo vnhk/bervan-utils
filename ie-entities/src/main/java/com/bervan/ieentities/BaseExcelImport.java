@@ -150,7 +150,7 @@ public class BaseExcelImport {
         Row headerRow = sheet.getRow(0);
         int lastCellNum = headerRow.getLastCellNum();
         List<String> headersNames = new ArrayList<>();
-        for (int i = 0; i < lastCellNum; i++) {
+        for (int i = 1; i < lastCellNum; i++) {
             headersNames.add(headerRow.getCell(i).getStringCellValue().toLowerCase(Locale.ROOT));
         }
 
