@@ -115,10 +115,10 @@ public class BaseExcelImport {
         for (; curr < lastRowNum; curr++) {
             try {
                 if (sheet.getRow(curr).getCell(0).getNumericCellValue() < 1) {
-                    return curr - 1;
+                    return curr;
                 }
             } catch (Exception e) {
-                return curr - 1;
+                return curr;
             }
         }
         return lastRowNum;
