@@ -131,9 +131,9 @@ public class BaseExcelImport {
 
     private void fillData(ExcelIEEntity<?> entity, Row row, List<String> headerNames, Map<String, Field> fields, Sheet sheet) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
         log.info("Importing row: " + row.getRowNum() + " for " + sheet.getSheetName());
-        for (int i = 1; i < headerNames.size(); i++) {
+        for (int i = 0; i < headerNames.size(); i++) {
             String columnName = headerNames.get(i);
-            Cell cell = row.getCell(i);
+            Cell cell = row.getCell(i + 1);
             if (cell != null) {
                 setValue(cell, entity, fields.get(columnName));
             }
