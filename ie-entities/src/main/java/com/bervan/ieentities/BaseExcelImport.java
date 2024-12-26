@@ -110,6 +110,7 @@ public class BaseExcelImport {
     }
 
     private Field getFieldForHeaderName(List<Field> fieldsToImportData, String headerName) {
+        log.debug("getFieldForHeaderName: headerName=" + headerName);
         return fieldsToImportData.stream().filter(e -> e.getName().equalsIgnoreCase(headerName)).findFirst().get();
     }
 
