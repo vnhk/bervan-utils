@@ -18,12 +18,15 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.bervan.ieentities.BaseExcelExport.LARGE_TEXT_PARTS_SHEET;
+
 public class BaseExcelImport {
     private final Map<Class<? extends ExcelIEEntity<?>>, List<Object>> processedEntities = new HashMap<>();
     private final Map<Class<?>, Sheet> sheets = new HashMap<>();
     private final List entities = new ArrayList<>();
     private final List<Class<?>> classesSupportsImport;
     private final BervanLogger log;
+    private Sheet largeTextPartsSheet;
 
     public BaseExcelImport(List<Class<?>> classesSupportsImport, BervanLogger log) {
         this.classesSupportsImport = classesSupportsImport;
@@ -148,6 +151,23 @@ public class BaseExcelImport {
     }
 
 
+    protected String rebuildStringFromParts(String keyReference) {
+        StringBuilder rebuiltString = new StringBuilder();
+
+        for (Row row : largeTextPartsSheet) {
+            Cell keyCell = row.getCell(0);
+            if (keyCell != null && keyCell.getStringCellValue().startsWith(keyReference)) {
+                Cell valueCell = row.getCell(1);
+                if (valueCell != null) {
+                    rebuiltString.append(valueCell.getStringCellValue());
+                }
+            }
+        }
+
+        return rebuiltString.toString();
+    }
+
+
     protected List<String> getHeaderNames(Sheet sheet) {
         Row headerRow = sheet.getRow(0);
         int lastCellNum = headerRow.getLastCellNum();
@@ -171,6 +191,7 @@ public class BaseExcelImport {
         int numberOfSheets = workbook.getNumberOfSheets();
         for (int i = 0; i < numberOfSheets; i++) {
             Sheet sheet = workbook.getSheetAt(i);
+            largeTextPartsSheet = workbook.getSheet(LARGE_TEXT_PARTS_SHEET);
             Optional<Class<?>> classToImport = classesSupportsImport.stream().filter(cl -> cl.getSimpleName().equals(sheet.getSheetName()))
                     .findFirst();
 
@@ -260,6 +281,9 @@ public class BaseExcelImport {
             field.set(entity, UUID.fromString(value));
         } else if (typeName.equals(String.class.getTypeName())) {
             String value = cell.getStringCellValue();
+            if (value.startsWith("LargeTextParts_")) {
+                value = rebuildStringFromParts(value);
+            }
             field.set(entity, value);
         }
         field.setAccessible(false);

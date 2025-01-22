@@ -21,7 +21,7 @@ public class BaseExcelExport {
     private final Map<String, Integer> lastColumnIndexForSheet = new HashMap<>();
     private final Map<Class<? extends ExcelIEEntity<?>>, List<Object>> processedEntities = new HashMap<>();
     private final int MAX_TEXT_LENGTH = 30000;
-    private final String LARGE_TEXT_PARTS_SHEET = "LargeTextParts";
+    public static final String LARGE_TEXT_PARTS_SHEET = "LargeTextParts";
     private Workbook workbook;
 
     public File save(Workbook workbook, String dirPath, String fileName) {
