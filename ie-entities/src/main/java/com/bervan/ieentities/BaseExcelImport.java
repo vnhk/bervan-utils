@@ -98,7 +98,7 @@ public class BaseExcelImport {
         }
 
         int i = 1;
-        for (; i <= lastRowNum; i++) {
+        for (; i < lastRowNum; i++) {
             Row row = sheet.getRow(i);
             log.debug("Processing row: " + i);
             if (row != null) {
