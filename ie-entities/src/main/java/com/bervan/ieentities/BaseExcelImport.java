@@ -98,7 +98,7 @@ public class BaseExcelImport {
         }
 
         int i = 1;
-        for (; i < lastRowNum; i++) {
+        for (; i <= lastRowNum; i++) {
             Row row = sheet.getRow(i);
             log.debug("Processing row: " + i);
             if (row != null) {
@@ -114,9 +114,11 @@ public class BaseExcelImport {
 
     private int getLastRowNum(Sheet sheet) {
         int lastRowNum = sheet.getLastRowNum();
+        //0 is HEADER
         int curr = 1;
         for (; curr <= lastRowNum; curr++) {
             try {
+                //if value in 1 cell is < 1 then we don't have rows to process
                 if (sheet.getRow(curr).getCell(0).getNumericCellValue() < 1) {
                     return curr;
                 }
