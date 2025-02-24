@@ -20,12 +20,12 @@
         <dependency>
             <groupId>com.bervan</groupId>
             <artifactId>history-tables-core</artifactId>
-            <version>1.0.0</version>
+            <version>latest</version>
         </dependency>
         <dependency>
             <groupId>com.bervan</groupId>
             <artifactId>ie-entities</artifactId>
-            <version>1.0.0</version>
+            <version>latest</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -71,6 +71,7 @@
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
