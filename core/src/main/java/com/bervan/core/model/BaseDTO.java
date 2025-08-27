@@ -5,5 +5,5 @@ public interface BaseDTO<ID> {
 
     ID getId();
 
-    Class<? extends BaseDTOTarget<ID>> dtoTarget();
+    Class<? extends BaseModel<ID>> dtoTarget();
 }

@@ -1,7 +1,7 @@
 package com.bervan.core.c2;
 
 import com.bervan.core.model.BaseDTO;
-import com.bervan.core.model.BaseDTOTarget;
+import com.bervan.core.model.BaseModel;
 import com.bervan.core.c1.Author;
 
 public class C2AuthorDTO implements BaseDTO<Long> {
@@ -20,7 +20,7 @@ public class C2AuthorDTO implements BaseDTO<Long> {
     }
 
     @Override
-    public Class<? extends BaseDTOTarget<Long>> dtoTarget() {
+    public Class<? extends BaseModel<Long>> dtoTarget() {
         return Author.class;
     }
 

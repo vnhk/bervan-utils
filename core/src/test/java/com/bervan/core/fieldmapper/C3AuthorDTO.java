@@ -2,7 +2,7 @@ package com.bervan.core.fieldmapper;
 
 import com.bervan.core.c1.Author;
 import com.bervan.core.model.BaseDTO;
-import com.bervan.core.model.BaseDTOTarget;
+import com.bervan.core.model.BaseModel;
 
 public class C3AuthorDTO implements BaseDTO<Long> {
     private Long id;
@@ -36,7 +36,7 @@ public class C3AuthorDTO implements BaseDTO<Long> {
     }
 
     @Override
-    public Class<? extends BaseDTOTarget<Long>> dtoTarget() {
+    public Class<? extends BaseModel<Long>> dtoTarget() {
         return Author.class;
     }
 }

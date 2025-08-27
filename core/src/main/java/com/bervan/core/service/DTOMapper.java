@@ -8,6 +8,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -15,7 +16,6 @@ import java.util.Optional;
 public class DTOMapper {
     private final BervanLogger log;
     private final List<? extends DefaultCustomMapper> defaultCustomMappers;
-    private static final ObjectMapper objectMapper = getObjectMapper();
 
     public DTOMapper(BervanLogger log, List<? extends DefaultCustomMapper> defaultCustomMappers) {
         this.log = log;
@@ -32,10 +32,9 @@ public class DTOMapper {
         } else {
             return objectMapper;
         }
-    }
+    }    private static final ObjectMapper objectMapper = getObjectMapper();
 
-    public <ID> BaseDTO<ID> map(BaseDTOTarget<ID> dtoTarget) throws Exception {
-        Class<? extends BaseDTO<ID>> dtoClass = dtoTarget.dto();
+    public <ID> BaseDTO<ID> map(BaseModel<ID> dtoTarget, Class<? extends BaseDTO<ID>> dtoClass) throws Exception {
         BaseDTO<ID> dto = initDTO(dtoClass);
 
         Field[] dtoFields = dtoClass.getDeclaredFields();
@@ -46,9 +45,9 @@ public class DTOMapper {
         return dto;
     }
 
-    public <ID> BaseDTOTarget<ID> map(BaseDTO<ID> dto) throws Exception {
-        Class<? extends BaseDTOTarget<ID>> dtoTargetClass = dto.dtoTarget();
-        BaseDTOTarget<ID> targetDTO = initTargetDTO(dtoTargetClass);
+    public <ID> BaseModel<ID> map(BaseDTO<ID> dto) throws Exception {
+        Class<? extends BaseModel<ID>> dtoTargetClass = dto.dtoTarget();
+        BaseModel<ID> targetDTO = initTargetDTO(dtoTargetClass);
 
         Field[] dtoTargetFields = dtoTargetClass.getDeclaredFields();
         for (Field fromField : dto.getClass().getDeclaredFields()) {
@@ -67,7 +66,7 @@ public class DTOMapper {
         }
     }
 
-    private BaseDTOTarget initTargetDTO(Class<? extends BaseDTOTarget> dtoTargetClass) {
+    private BaseModel initTargetDTO(Class<? extends BaseModel> dtoTargetClass) {
         try {
             return dtoTargetClass.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
@@ -76,7 +75,7 @@ public class DTOMapper {
         }
     }
 
-    private void processField(Object from, Object to, Field[] toFields, Field fromField) throws Exception {
+    private <ID> void processField(Object from, Object to, Field[] toFields, Field fromField) throws Exception {
         String name = fromField.getName();
         Class<?> fromFieldType = fromField.getType();
         Optional<Field> toFieldWithTheSameName = getToFieldWithTheSameName(toFields, name);
@@ -92,7 +91,7 @@ public class DTOMapper {
                 if (value instanceof BaseDTO) {
                     value = map(((BaseDTO<?>) value));
                 } else {
-                    value = map(((BaseDTOTarget) value));
+                    value = map(((BaseModel) value), ((Class<? extends BaseDTO<ID>>) toField.getType()));
                 }
             }
 
@@ -117,24 +116,23 @@ public class DTOMapper {
      * @return true/false
      * @throws IllegalAccessException
      */
-    private boolean shouldExecuteMap(Object fromObj, Field fromField, Field toField) throws IllegalAccessException {
-        if (BaseDTOTarget.class.isAssignableFrom(fromField.getType()) && BaseDTO.class.isAssignableFrom(toField.getType())) {
+    private boolean shouldExecuteMap(Object fromObj, Field fromField, Field toField) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
+        if (BaseModel.class.isAssignableFrom(fromField.getType()) && BaseDTO.class.isAssignableFrom(toField.getType())) {
             return shouldBeMappedToDTO(fromObj, fromField, toField);
-        } else if (BaseDTO.class.isAssignableFrom(fromField.getType()) && BaseDTOTarget.class.isAssignableFrom(toField.getType())) {
+        } else if (BaseDTO.class.isAssignableFrom(fromField.getType()) && BaseModel.class.isAssignableFrom(toField.getType())) {
             return shouldBeMappedToDTOTarget(fromObj, fromField, toField);
         }
 
         return false;
     }
 
-    private boolean shouldBeMappedToDTO(Object fromObj, Field fromField, Field toField) throws IllegalAccessException {
+    private boolean shouldBeMappedToDTO(Object fromObj, Field fromField, Field toField) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
         fromField.setAccessible(true);
-        BaseDTOTarget from = ((BaseDTOTarget) fromField.get(fromObj));
+        BaseModel from = ((BaseModel) fromField.get(fromObj));
         fromField.setAccessible(false);
 
-        return from != null && toField.getAnnotatedType().getType().equals(from.dto());
+        return from != null && ((BaseDTO) toField.getType().getConstructor().newInstance()).dtoTarget().equals(from.getClass());
     }
-
 
     private boolean shouldBeMappedToDTOTarget(Object fromObj, Field fromField, Field toField) throws IllegalAccessException {
         fromField.setAccessible(true);
@@ -180,4 +178,8 @@ public class DTOMapper {
 
         return defaultCustomMappers.stream().filter(e -> e.getFrom().equals(from) && e.getTo().equals(to)).findFirst();
     }
+
+
+
+
 }

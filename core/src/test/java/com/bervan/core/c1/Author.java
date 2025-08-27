@@ -2,8 +2,8 @@ package com.bervan.core.c1;
 
 
 import com.bervan.core.model.BaseDTO;
-import com.bervan.core.model.BaseDTOTarget;
-public class Author implements BaseDTOTarget<Long> {
+import com.bervan.core.model.BaseModel;
+public class Author implements BaseModel<Long> {
     private Long id;
     private String firstName;
     private String lastName;
@@ -16,11 +16,6 @@ public class Author implements BaseDTOTarget<Long> {
     @Override
     public Long getId() {
         return id;
-    }
-
-    @Override
-    public Class<? extends BaseDTO<Long>> dto() {
-        return AuthorDTO.class;
     }
 
     public String getFirstName() {

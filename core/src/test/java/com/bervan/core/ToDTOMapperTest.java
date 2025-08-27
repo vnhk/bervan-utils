@@ -7,7 +7,7 @@ import com.bervan.core.c1.BookDTO;
 import com.bervan.core.c2.*;
 import com.bervan.core.fieldmapper.*;
 import com.bervan.core.model.BaseDTO;
-import com.bervan.core.model.BaseDTOTarget;
+import com.bervan.core.model.BaseModel;
 import com.bervan.core.model.BervanLogger;
 import com.bervan.core.service.DTOMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,7 +91,7 @@ class ToDTOMapperTest {
                 .secureField("Should not be copied, because DTO has no field with that name")
                 .build();
 
-        BaseDTO<Long> map = dtoMapper.map(book);
+        BaseDTO<Long> map = dtoMapper.map(book, BookDTO.class);
 
         assertTrue(map instanceof BookDTO);
         assertEquals(map.getId(), book.getId());
@@ -121,7 +121,7 @@ class ToDTOMapperTest {
                 .anotherSecuredField("Should not be copied, because DTO Target has no field with that name")
                 .build();
 
-        BaseDTOTarget<Long> map = dtoMapper.map(book);
+        BaseModel<Long> map = dtoMapper.map(book);
 
         assertTrue(map instanceof Book);
         assertEquals(map.getId(), book.getId());
@@ -151,7 +151,7 @@ class ToDTOMapperTest {
                 .secureField(null)
                 .build();
 
-        BaseDTO<Long> map = dtoMapper.map(book);
+        BaseDTO<Long> map = dtoMapper.map(book, BookDTO.class);
 
         assertTrue(map instanceof BookDTO);
         assertEquals(map.getId(), book.getId());
@@ -181,7 +181,7 @@ class ToDTOMapperTest {
                 .anotherSecuredField(null)
                 .build();
 
-        BaseDTOTarget<Long> map = dtoMapper.map(bookDTO);
+        BaseModel<Long> map = dtoMapper.map(bookDTO);
 
         assertTrue(map instanceof Book);
         assertEquals(map.getId(), bookDTO.getId());
@@ -208,7 +208,7 @@ class ToDTOMapperTest {
                 .secureField(null)
                 .build();
 
-        BaseDTO<Long> map = dtoMapper.map(book);
+        BaseDTO<Long> map = dtoMapper.map(book, BookDTO.class);
 
         assertTrue(map instanceof BookDTO);
         assertEquals(map.getId(), book.getId());
@@ -232,7 +232,7 @@ class ToDTOMapperTest {
                 .anotherSecuredField(null)
                 .build();
 
-        BaseDTOTarget<Long> map = dtoMapper.map(bookDto);
+        BaseModel<Long> map = dtoMapper.map(bookDto);
 
         assertTrue(map instanceof Book);
         assertEquals(map.getId(), bookDto.getId());
@@ -258,7 +258,7 @@ class ToDTOMapperTest {
                 .secureField(null)
                 .build();
 
-        BaseDTO<Long> map = dtoMapper.map(book);
+        BaseDTO<Long> map = dtoMapper.map(book, C2BookDTO.class);
 
         assertTrue(map instanceof C2BookDTO);
         assertEquals(map.getId(), book.getId());
@@ -283,7 +283,7 @@ class ToDTOMapperTest {
                 .author(null)
                 .build();
 
-        BaseDTOTarget<Long> map = dtoMapper.map(book);
+        BaseModel<Long> map = dtoMapper.map(book);
 
         assertTrue(map instanceof C2Book);
         assertEquals(map.getId(), book.getId());
@@ -306,7 +306,7 @@ class ToDTOMapperTest {
                 .author(152L)
                 .build();
 
-        BaseDTOTarget<Long> map = dtoMapper.map(book);
+        BaseModel<Long> map = dtoMapper.map(book);
 
         assertTrue(map instanceof C2Book);
         assertEquals(map.getId(), book.getId());
@@ -333,7 +333,7 @@ class ToDTOMapperTest {
                 .secureField(null)
                 .build();
 
-        BaseDTO<Long> map = dtoMapper.map(book);
+        BaseDTO<Long> map = dtoMapper.map(book, C2BookDTO.class);
 
         assertTrue(map instanceof C2BookDTO);
         assertEquals(map.getId(), book.getId());
@@ -356,7 +356,7 @@ class ToDTOMapperTest {
                 .author("John Snow")
                 .build();
 
-        BaseDTOTarget<Long> map = dtoMapper.map(book);
+        BaseModel<Long> map = dtoMapper.map(book);
 
         assertTrue(map instanceof C3Book);
         assertEquals(map.getId(), book.getId());
@@ -382,7 +382,7 @@ class ToDTOMapperTest {
                 .secureField(null)
                 .build();
 
-        BaseDTO<Long> map = dtoMapper.map(book);
+        BaseDTO<Long> map = dtoMapper.map(book, C3BookDTO.class);
 
         assertTrue(map instanceof C3BookDTO);
         assertEquals(map.getId(), book.getId());

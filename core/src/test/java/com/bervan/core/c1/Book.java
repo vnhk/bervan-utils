@@ -1,9 +1,9 @@
 package com.bervan.core.c1;
 
 import com.bervan.core.model.BaseDTO;
-import com.bervan.core.model.BaseDTOTarget;
+import com.bervan.core.model.BaseModel;
 
-public class Book implements BaseDTOTarget<Long> {
+public class Book implements BaseModel<Long> {
 
     private Long id;
     private String name;
@@ -14,11 +14,6 @@ public class Book implements BaseDTOTarget<Long> {
     @Override
     public Long getId() {
         return id;
-    }
-
-    @Override
-    public Class<? extends BaseDTO<Long>> dto() {
-        return BookDTO.class;
     }
 
     @Override

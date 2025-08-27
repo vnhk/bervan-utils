@@ -2,7 +2,7 @@ package com.bervan.core.fieldmapper;
 
 
 import com.bervan.core.model.BaseDTO;
-import com.bervan.core.model.BaseDTOTarget;
+import com.bervan.core.model.BaseModel;
 import com.bervan.core.model.FieldCustomMapper;
 
 
@@ -24,7 +24,7 @@ public class C3BookDTO implements BaseDTO<Long> {
     }
 
     @Override
-    public Class<? extends BaseDTOTarget<Long>> dtoTarget() {
+    public Class<? extends BaseModel<Long>> dtoTarget() {
         return C3Book.class;
     }
 

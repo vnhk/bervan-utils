@@ -1,10 +1,10 @@
 package com.bervan.core.fieldmapper;
 
 import com.bervan.core.model.BaseDTO;
-import com.bervan.core.model.BaseDTOTarget;
+import com.bervan.core.model.BaseModel;
 import com.bervan.core.model.FieldCustomMapper;
 
-public class C3Book implements BaseDTOTarget<Long> {
+public class C3Book implements BaseModel<Long> {
 
     private Long id;
     @FieldCustomMapper(mapper = ToUpperCaseMapper.class)
@@ -17,11 +17,6 @@ public class C3Book implements BaseDTOTarget<Long> {
     @Override
     public Long getId() {
         return id;
-    }
-
-    @Override
-    public Class<? extends BaseDTO<Long>> dto() {
-        return C3BookDTO.class;
     }
 
     @Override

@@ -2,9 +2,9 @@ package com.bervan.core.c2;
 
 
 import com.bervan.core.model.BaseDTO;
-import com.bervan.core.model.BaseDTOTarget;
+import com.bervan.core.model.BaseModel;
 
-public class C2Author implements BaseDTOTarget<Long> {
+public class C2Author implements BaseModel<Long> {
     private Long id;
     private String firstName;
     private String lastName;
@@ -18,12 +18,6 @@ public class C2Author implements BaseDTOTarget<Long> {
     public Long getId() {
         return id;
     }
-
-    @Override
-    public Class<? extends BaseDTO<Long>> dto() {
-        return C2AuthorDTO.class;
-    }
-
 
     public String getFirstName() {
         return firstName;
