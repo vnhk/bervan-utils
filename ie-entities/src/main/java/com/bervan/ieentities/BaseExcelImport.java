@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -31,6 +32,10 @@ public class BaseExcelImport {
     public BaseExcelImport(List<Class<?>> classesSupportsImport, BervanLogger log) {
         this.classesSupportsImport = classesSupportsImport;
         this.log = log;
+    }
+
+    private static double getNumericCellValue(Cell cell) {
+        return cell.getNumericCellValue();
     }
 
     public Workbook load(String dirPath, String fileName) {
@@ -152,7 +157,6 @@ public class BaseExcelImport {
                 .collect(Collectors.toList());
     }
 
-
     protected String rebuildStringFromParts(String keyReference) {
         StringBuilder rebuiltString = new StringBuilder();
 
@@ -168,7 +172,6 @@ public class BaseExcelImport {
 
         return rebuiltString.toString();
     }
-
 
     protected List<String> getHeaderNames(Sheet sheet) {
         Row headerRow = sheet.getRow(0);
@@ -235,6 +238,9 @@ public class BaseExcelImport {
                 String numericCellValue = cell.getStringCellValue();
                 field.set(entity, Double.valueOf(numericCellValue));
             }
+        } else if (typeName.equals(BigDecimal.class.getTypeName())) {
+            String stringCellValue = cell.getStringCellValue();
+            field.set(entity, new BigDecimal(stringCellValue));
         } else if (typeName.equals(Integer.class.getTypeName())) {
             try {
                 double numericCellValue = cell.getNumericCellValue();
@@ -272,11 +278,13 @@ public class BaseExcelImport {
                     setExcelEntityRefId(excelEntityRef, id.trim(), idField);
                     excelIEEntities.add(excelEntityRef);
                 }
+                field.set(entity, excelIEEntities);
 
-                if (typeName.replace(parametrizedType, "").equals(List.class.getTypeName())) {
-                    LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
-                    field.set(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
-                }
+                //????
+//                if (typeName.replace(parametrizedType, "").equals(List.class.getTypeName())) {
+//                    LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
+//                    field.set(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
+//                }
             }
         } else if (typeName.equals(UUID.class.getTypeName())) {
             String value = cell.getStringCellValue();
@@ -287,16 +295,20 @@ public class BaseExcelImport {
                 value = rebuildStringFromParts(value);
             }
             field.set(entity, value);
+        } else if (ExcelIEEntity.class.isAssignableFrom(field.getType())) {
+            Class<?> classExcelEntity = Class.forName(typeName);
+            ExcelIEEntity<?> excelEntityRef = initEntity(classExcelEntity);
+            Field idField = Arrays.stream(excelEntityRef.getClass().getDeclaredFields())
+                    .filter(e -> e.getName().equalsIgnoreCase("Id")).findFirst().get();
+            setExcelEntityRefId(excelEntityRef, cell.getStringCellValue().trim(), idField);
+            field.set(entity, excelEntityRef);
         }
         field.setAccessible(false);
 
     }
 
-    private static double getNumericCellValue(Cell cell) {
-        return cell.getNumericCellValue();
-    }
-
     protected void setExcelEntityRefId(ExcelIEEntity<?> excelEntityRef, String id, Field idField) throws InvocationTargetException, IllegalAccessException {
+        idField.setAccessible(true);
         String typeName = idField.getType().getName();
         if (typeName.equals(String.class.getTypeName())) {
             idField.set(excelEntityRef, id);
@@ -313,6 +325,7 @@ public class BaseExcelImport {
         } else {
             defaultMapper(excelEntityRef, id, idField, typeName);
         }
+        idField.setAccessible(false);
 
         throw new RuntimeException("Could not set excel entity ref id!");
     }

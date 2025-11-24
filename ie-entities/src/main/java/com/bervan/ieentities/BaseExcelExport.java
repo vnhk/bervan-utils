@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -162,6 +163,8 @@ public class BaseExcelExport {
                 cell.setCellValue(((LocalDate) value));
             } else if (value instanceof Double) {
                 cell.setCellValue(((Double) value));
+            } else if (value instanceof BigDecimal) {
+                cell.setCellValue(((BigDecimal) value).toString());
             } else if (value instanceof Long) {
                 cell.setCellValue(((Long) value));
             } else if (value instanceof Integer) {
