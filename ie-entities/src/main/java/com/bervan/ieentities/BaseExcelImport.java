@@ -237,8 +237,12 @@ public class BaseExcelImport {
                 field.set(entity, Double.valueOf(numericCellValue));
             }
         } else if (typeName.equals(BigDecimal.class.getTypeName())) {
-            String stringCellValue = cell.getStringCellValue();
-            field.set(entity, new BigDecimal(stringCellValue));
+            if (cell.getCellType() == CellType.NUMERIC) {
+                field.set(entity, BigDecimal.valueOf(cell.getNumericCellValue()));
+            } else {
+                String stringCellValue = cell.getStringCellValue();
+                field.set(entity, new BigDecimal(stringCellValue));
+            }
         } else if (typeName.equals(Integer.class.getTypeName())) {
             try {
                 double numericCellValue = cell.getNumericCellValue();
