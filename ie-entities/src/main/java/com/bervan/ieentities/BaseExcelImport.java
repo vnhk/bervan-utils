@@ -260,7 +260,7 @@ public class BaseExcelImport {
         } else if (typeName.equals(LocalDateTime.class.getTypeName())) {
             LocalDateTime result = null;
 
-            if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+            if (cell.getCellType() == CellType.NUMERIC) {
                 // Excel date -> LocalDateTime
                 result = cell.getLocalDateTimeCellValue();
 
@@ -277,7 +277,7 @@ public class BaseExcelImport {
         } else if (typeName.equals(LocalDate.class.getTypeName())) {
             LocalDate result = null;
 
-            if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+            if (cell.getCellType() == CellType.NUMERIC) {
                 // Excel date -> LocalDate
                 LocalDateTime ldt = cell.getLocalDateTimeCellValue();
                 result = ldt != null ? ldt.toLocalDate() : null;
