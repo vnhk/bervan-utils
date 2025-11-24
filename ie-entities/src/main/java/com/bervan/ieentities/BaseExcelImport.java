@@ -2,10 +2,7 @@ package com.bervan.ieentities;
 
 import com.bervan.core.model.BervanLogger;
 import org.apache.logging.log4j.util.Strings;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
@@ -16,6 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -260,11 +258,40 @@ public class BaseExcelImport {
         } else if (typeName.equals(Date.class.getTypeName())) {
             field.set(entity, cell.getDateCellValue());
         } else if (typeName.equals(LocalDateTime.class.getTypeName())) {
-            LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
-            field.set(entity, localDateTimeCellValue);
+            LocalDateTime result = null;
+
+            if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+                // Excel date -> LocalDateTime
+                result = cell.getLocalDateTimeCellValue();
+
+            } else if (cell.getCellType() == CellType.STRING) {
+                // String "dd/MM/yyyy HH:mm:ss" -> LocalDateTime
+                String raw = cell.getStringCellValue();
+                if (raw != null && !raw.isBlank()) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+                    result = LocalDateTime.parse(raw.trim(), formatter);
+                }
+            }
+
+            field.set(entity, result);
         } else if (typeName.equals(LocalDate.class.getTypeName())) {
-            LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
-            field.set(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
+            LocalDate result = null;
+
+            if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+                // Excel date -> LocalDate
+                LocalDateTime ldt = cell.getLocalDateTimeCellValue();
+                result = ldt != null ? ldt.toLocalDate() : null;
+
+            } else if (cell.getCellType() == CellType.STRING) {
+                // String "dd/MM/yyyy" -> LocalDate
+                String raw = cell.getStringCellValue();
+                if (raw != null && !raw.isBlank()) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                    result = LocalDate.parse(raw.trim(), formatter);
+                }
+            }
+
+            field.set(entity, result);
         } else if (isCollectionOfExcelEntities(typeName, parametrizedType, parametrizedSignStart, parametrizedSignEnd)) {
             String value = cell.getStringCellValue();
             if (Strings.isNotBlank(value)) {
