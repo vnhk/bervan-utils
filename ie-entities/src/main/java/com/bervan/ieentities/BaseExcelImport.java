@@ -1,6 +1,6 @@
 package com.bervan.ieentities;
 
-import com.bervan.core.model.BervanLogger;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -19,20 +19,18 @@ import java.util.stream.Collectors;
 
 import static com.bervan.ieentities.BaseExcelExport.LARGE_TEXT_PARTS_SHEET;
 
+@Slf4j
 public class BaseExcelImport {
-    private final Map<Class<? extends ExcelIEEntity<?>>, List<Object>> processedEntities = new HashMap<>();
     private final Map<Class<?>, Sheet> sheets = new HashMap<>();
     private final List entities = new ArrayList<>();
     private final List<Class<?>> classesSupportsImport;
-    private final BervanLogger log;
     private Sheet largeTextPartsSheet;
 
-    public BaseExcelImport(List<Class<?>> classesSupportsImport, BervanLogger log) {
+    public BaseExcelImport(List<Class<?>> classesSupportsImport) {
         this.classesSupportsImport = classesSupportsImport;
-        this.log = log;
     }
 
-    private static double getNumericCellValue(Cell cell) {
+    private double getNumericCellValue(Cell cell) {
         return cell.getNumericCellValue();
     }
 
@@ -78,6 +76,8 @@ public class BaseExcelImport {
     // TODO: 30/07/2023 Add additional excel row id column used for identifying processed rows instead on using and requiring entity id
     //  - it would allow to import data without requirement of providing entity Id
     public List<?> importExcel(Workbook workbook) {
+        entities.clear();
+        sheets.clear();
         loadSheets(workbook);
         try {
             for (Map.Entry<Class<?>, Sheet> classSheetEntry : sheets.entrySet()) {
@@ -138,7 +138,7 @@ public class BaseExcelImport {
     }
 
     private void fillData(ExcelIEEntity<?> entity, Row row, List<String> headerNames, Map<String, Field> fields, Sheet sheet) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException {
-        log.info("Importing row: " + row.getRowNum() + " for " + sheet.getSheetName());
+        log.debug("Importing row: " + row.getRowNum() + " for " + sheet.getSheetName());
         for (int i = 0; i < headerNames.size(); i++) {
             String columnName = headerNames.get(i);
             Cell cell = row.getCell(i + 1);

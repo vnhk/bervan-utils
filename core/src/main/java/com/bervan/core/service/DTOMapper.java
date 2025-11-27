@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -13,12 +14,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 public class DTOMapper {
-    private final BervanLogger log;
     private final List<? extends DefaultCustomMapper> defaultCustomMappers;
 
-    public DTOMapper(BervanLogger log, List<? extends DefaultCustomMapper> defaultCustomMappers) {
-        this.log = log;
+    public DTOMapper(List<? extends DefaultCustomMapper> defaultCustomMappers) {
         this.defaultCustomMappers = defaultCustomMappers;
     }
 
@@ -32,7 +32,7 @@ public class DTOMapper {
         } else {
             return objectMapper;
         }
-    }    private static final ObjectMapper objectMapper = getObjectMapper();
+    }
 
     public <ID> BaseDTO<ID> map(BaseModel<ID> dtoTarget, Class<? extends BaseDTO<ID>> dtoClass) throws Exception {
         BaseDTO<ID> dto = initDTO(dtoClass);
@@ -43,7 +43,7 @@ public class DTOMapper {
         }
 
         return dto;
-    }
+    }    private static final ObjectMapper objectMapper = getObjectMapper();
 
     public <ID> BaseModel<ID> map(BaseDTO<ID> dto) throws Exception {
         Class<? extends BaseModel<ID>> dtoTargetClass = dto.dtoTarget();

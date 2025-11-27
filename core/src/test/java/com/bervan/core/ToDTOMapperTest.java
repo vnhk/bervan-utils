@@ -8,7 +8,6 @@ import com.bervan.core.c2.*;
 import com.bervan.core.fieldmapper.*;
 import com.bervan.core.model.BaseDTO;
 import com.bervan.core.model.BaseModel;
-import com.bervan.core.model.BervanLogger;
 import com.bervan.core.service.DTOMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,55 +23,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 class ToDTOMapperTest {
     private DTOMapper dtoMapper;
-    private BervanLogger log = new BervanLogger() {
-        @Override
-        public void error(String message) {
-            System.out.println(message);
-        }
-
-        @Override
-        public void info(String message) {
-            System.out.println(message);
-
-        }
-
-        @Override
-        public void debug(String message) {
-            System.out.println(message);
-
-        }
-
-        @Override
-        public void warn(String message) {
-            System.out.println(message);
-
-        }
-
-        @Override
-        public void error(String message, Throwable throwable) {
-            System.out.println(message);
-
-        }
-
-        @Override
-        public void warn(String message, Throwable throwable) {
-            System.out.println(message);
-        }
-
-        @Override
-        public void error(Throwable throwable) {
-            System.out.println(throwable.getMessage());
-        }
-
-        @Override
-        public void warn(Throwable throwable) {
-            System.out.println(throwable.getMessage());
-        }
-    };
 
     @BeforeEach
     public void setUp() {
-        dtoMapper = new DTOMapper(log, new ArrayList<>());
+        dtoMapper = new DTOMapper(new ArrayList<>());
     }
 
     @Test
@@ -248,7 +202,7 @@ class ToDTOMapperTest {
     public void mapToDTOUsingCustomMapperWhenValueToBeMappedIsNull() throws Exception {
         C2Author author = null;
 
-        dtoMapper = new DTOMapper(log, Arrays.asList(new C2AuthorMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorMapper()));
 
         C2Book book = C2Book.C2BookBuilder.aC2Book()
                 .id(null)
@@ -274,7 +228,7 @@ class ToDTOMapperTest {
     public void mapToTargetDTOUsingCustomMapperWhenValueToBeMappedIsNull() throws Exception {
         C2AuthorDTO author = null;
 
-        dtoMapper = new DTOMapper(log, Arrays.asList(new C2AuthorDTOMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorDTOMapper()));
 
         C2BookDTO book = C2BookDTO.C2BookDTOBuilder.aC2BookDTO()
                 .id(null)
@@ -297,7 +251,7 @@ class ToDTOMapperTest {
 
     @Test
     public void mapToTargetDTOUsingCustomMapperWhenValueToBeMapped() throws Exception {
-        dtoMapper = new DTOMapper(log, Arrays.asList(new C2AuthorDTOMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorDTOMapper()));
 
         C2BookDTO book = C2BookDTO.C2BookDTOBuilder.aC2BookDTO()
                 .id(null)
@@ -323,7 +277,7 @@ class ToDTOMapperTest {
     public void mapUsingCustomMapperWhenValueToBeMapped() throws Exception {
         C2Author author = C2Author.C2AuthorBuilder.aC2Author().id(150L).firstName("test").lastName("test").build();
 
-        dtoMapper = new DTOMapper(log, Arrays.asList(new C2AuthorMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorMapper()));
 
         C2Book book = C2Book.C2BookBuilder.aC2Book()
                 .id(null)
@@ -347,7 +301,7 @@ class ToDTOMapperTest {
 
     @Test
     public void mapToTargetDTOUsingFieldMapperWithExistingDefaultMapper() throws Exception {
-        dtoMapper = new DTOMapper(log, Arrays.asList(new DefaultC3AuthorCustomMapper(), new DefaultC3StringToAuthorCustomMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new DefaultC3AuthorCustomMapper(), new DefaultC3StringToAuthorCustomMapper()));
 
         C3BookDTO book = C3BookDTO.C3BookDTOBuilder.aC3BookDTO()
                 .id(null)
@@ -372,7 +326,7 @@ class ToDTOMapperTest {
     public void mapToDTOUsingFieldMapperWithExistingDefaultMapper() throws Exception {
         C3Author author = C3Author.C3AuthorBuilder.aC3Author().id(150L).firstName("John").lastName("Snow").build();
 
-        dtoMapper = new DTOMapper(log, Arrays.asList(new DefaultC3AuthorCustomMapper(), new DefaultC3StringToAuthorCustomMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new DefaultC3AuthorCustomMapper(), new DefaultC3StringToAuthorCustomMapper()));
 
         C3Book book = C3Book.C3BookBuilder.aC3Book()
                 .id(null)
