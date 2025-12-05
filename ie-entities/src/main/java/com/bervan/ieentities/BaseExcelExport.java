@@ -1,5 +1,6 @@
 package com.bervan.ieentities;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -17,12 +18,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class BaseExcelExport {
+    public static final String LARGE_TEXT_PARTS_SHEET = "LargeTextParts";
     private final Map<String, Integer> columnIndexForField = new HashMap<>();
     private final Map<String, Integer> lastColumnIndexForSheet = new HashMap<>();
     private final Map<Class<? extends ExcelIEEntity<?>>, List<Object>> processedEntities = new HashMap<>();
     private final int MAX_TEXT_LENGTH = 30000;
-    public static final String LARGE_TEXT_PARTS_SHEET = "LargeTextParts";
     private Workbook workbook;
 
     public File save(Workbook workbook, String dirPath, String fileName) {
@@ -45,6 +47,7 @@ public class BaseExcelExport {
         try (FileOutputStream outputStream = new FileOutputStream(toSave)) {
             workbook.write(outputStream);
         } catch (Exception e) {
+            log.error("Cannot save workbook!", e);
             throw new RuntimeException("Cannot save workbook!", e);
         }
 
@@ -52,16 +55,21 @@ public class BaseExcelExport {
     }
 
     public Workbook exportExcel(List<? extends ExcelIEEntity<?>> entities, Workbook workbook) {
+        log.info("Exporting " + entities.size() + " entities.");
         this.workbook = Objects.requireNonNullElseGet(workbook, XSSFWorkbook::new);
+        this.processedEntities.clear();
+        this.columnIndexForField.clear();
+        this.lastColumnIndexForSheet.clear();
         buildLargeTextPartsSheet();
 
         for (ExcelIEEntity<?> entity : entities) {
             if (entity.getId() == null) {
+                log.error("Could not export entities with id = null!");
                 throw new RuntimeException("Could not export entities with id = null!");
             }
 
             if (processedEntities.get(entity.getClass()) != null && processedEntities.get(entity.getClass()).contains(entity.getId())) {
-//                log.info("Entity " + entity.getClass().getSimpleName() + " with id = " + entity.getId() + " already exported. Skip.");
+                log.info("Entity " + entity.getClass().getSimpleName() + " with id = " + entity.getId() + " already exported. Skip.");
                 continue;
             }
 
@@ -142,6 +150,7 @@ public class BaseExcelExport {
             Integer rowIndex = getRowNumber(sheet);
             setCellValue(sheet, columnIndex, rowIndex, val);
         } catch (Exception e) {
+            log.error("Could not export " + fieldName + "!", e);
             throw new RuntimeException("Could not export " + fieldName + "!", e);
         }
     }
