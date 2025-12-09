@@ -103,7 +103,6 @@ public class BaseExcelImport {
         int i = 1;
         for (; i <= lastRowNum; i++) {
             Row row = sheet.getRow(i);
-            log.debug("Processing row: " + i);
             if (row != null) {
                 ExcelIEEntity<?> excelIEEntity = initEntity(entity);
                 fillData(excelIEEntity, row, headerNames, fieldsForColumn, sheet);
