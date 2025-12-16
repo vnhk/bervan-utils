@@ -78,6 +78,7 @@ public class BaseExcelImport {
     public List<?> importExcel(Workbook workbook) {
         entities.clear();
         sheets.clear();
+        largeTextPartsSheet = null;
         loadSheets(workbook);
         try {
             for (Map.Entry<Class<?>, Sheet> classSheetEntry : sheets.entrySet()) {
