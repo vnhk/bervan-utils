@@ -264,6 +264,7 @@ public class BaseExcelExport {
                 .map(Field::getName).map(String::toLowerCase).collect(Collectors.toSet());
 
         if (columnsToExport != null && !columnsToExport.isEmpty()) {
+            columnsToExport = columnsToExport.stream().map(String::toLowerCase).collect(Collectors.toList());
             fields = fields.stream().filter(e -> columnsToExport.contains(e)).collect(Collectors.toSet());
         }
 
