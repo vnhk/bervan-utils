@@ -1,5 +1,6 @@
 package com.bervan.ieentities;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.ss.usermodel.Cell;
@@ -25,6 +26,8 @@ public class BaseExcelExport {
     private final Map<String, Integer> lastColumnIndexForSheet = new HashMap<>();
     private final Map<Class<? extends ExcelIEEntity<?>>, List<Object>> processedEntities = new HashMap<>();
     private final int MAX_TEXT_LENGTH = 30000;
+    @Setter
+    private List<String> columnsToExport = new ArrayList<>();
     private Workbook workbook;
 
     public File save(Workbook workbook, String dirPath, String fileName) {
@@ -259,11 +262,17 @@ public class BaseExcelExport {
     protected List<Method> getGettersToExportData(Object object) {
         Set<String> fields = Arrays.stream(object.getClass().getDeclaredFields())
                 .map(Field::getName).map(String::toLowerCase).collect(Collectors.toSet());
+
+        if (columnsToExport != null && !columnsToExport.isEmpty()) {
+            fields = fields.stream().filter(e -> columnsToExport.contains(e)).collect(Collectors.toSet());
+        }
+
+        Set<String> finalFields = fields;
         return Arrays.stream(object.getClass().getDeclaredMethods())
                 .filter(e -> !e.isAnnotationPresent(ExcelIgnore.class))
                 .filter(e -> !e.getName().equals("getId"))
                 .filter(e -> e.getName().startsWith("get"))
-                .filter(e -> fields.contains(e.getName().replace("get", "").toLowerCase()))
+                .filter(e -> finalFields.contains(e.getName().replace("get", "").toLowerCase()))
                 .collect(Collectors.toList());
     }
 
