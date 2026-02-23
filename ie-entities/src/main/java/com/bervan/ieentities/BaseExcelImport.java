@@ -20,14 +20,12 @@ import java.util.stream.Collectors;
 import static com.bervan.ieentities.BaseExcelExport.LARGE_TEXT_PARTS_SHEET;
 
 @Slf4j
-public class BaseExcelImport {
+public class BaseExcelImport extends BaseIEImport {
     private final Map<Class<?>, Sheet> sheets = new HashMap<>();
-    private final List entities = new ArrayList<>();
-    private final List<Class<?>> classesSupportsImport;
     private Sheet largeTextPartsSheet;
 
     public BaseExcelImport(List<Class<?>> classesSupportsImport) {
-        this.classesSupportsImport = classesSupportsImport;
+        super(classesSupportsImport);
     }
 
     private double getNumericCellValue(Cell cell) {
@@ -44,7 +42,6 @@ public class BaseExcelImport {
             fileName = "temp";
             log.warn("Filename is empty. Workbook will be saved as temp.xlsx.");
         }
-
 
         File currDir = new File(dirPath);
         String path = currDir.getAbsolutePath();
@@ -147,13 +144,6 @@ public class BaseExcelImport {
         }
     }
 
-    protected List<Field> getFieldsToImportData(Class<?> entity, List<String> headersName) {
-        return Arrays.stream(entity.getDeclaredFields())
-                .filter(e -> !e.isAnnotationPresent(ExcelIgnore.class))
-                .filter(e -> headersName.contains(e.getName().toLowerCase(Locale.ROOT)))
-                .collect(Collectors.toList());
-    }
-
     protected String rebuildStringFromParts(String keyReference) {
         StringBuilder rebuiltString = new StringBuilder();
 
@@ -179,14 +169,6 @@ public class BaseExcelImport {
         }
 
         return headersNames;
-    }
-
-    protected ExcelIEEntity<?> initEntity(Class<?> cl) {
-        try {
-            return (ExcelIEEntity<?>) cl.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("Entity must have no args constructor!", e);
-        }
     }
 
     protected void loadSheets(Workbook workbook) {
@@ -264,11 +246,8 @@ public class BaseExcelImport {
             LocalDateTime result = null;
 
             if (cell.getCellType() == CellType.NUMERIC) {
-                // Excel date -> LocalDateTime
                 result = cell.getLocalDateTimeCellValue();
-
             } else if (cell.getCellType() == CellType.STRING) {
-                // String "dd/MM/yyyy HH:mm:ss" -> LocalDateTime
                 String raw = cell.getStringCellValue();
                 if (raw != null && !raw.isBlank()) {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -281,12 +260,9 @@ public class BaseExcelImport {
             LocalDate result = null;
 
             if (cell.getCellType() == CellType.NUMERIC) {
-                // Excel date -> LocalDate
                 LocalDateTime ldt = cell.getLocalDateTimeCellValue();
                 result = ldt != null ? ldt.toLocalDate() : null;
-
             } else if (cell.getCellType() == CellType.STRING) {
-                // String "dd/MM/yyyy" -> LocalDate
                 String raw = cell.getStringCellValue();
                 if (raw != null && !raw.isBlank()) {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -309,12 +285,6 @@ public class BaseExcelImport {
                     excelIEEntities.add(excelEntityRef);
                 }
                 field.set(entity, excelIEEntities);
-
-                //????
-//                if (typeName.replace(parametrizedType, "").equals(List.class.getTypeName())) {
-//                    LocalDateTime localDateTimeCellValue = cell.getLocalDateTimeCellValue();
-//                    field.set(entity, localDateTimeCellValue != null ? localDateTimeCellValue.toLocalDate() : null);
-//                }
             }
         } else if (typeName.equals(UUID.class.getTypeName())) {
             String value = cell.getStringCellValue();
@@ -334,48 +304,5 @@ public class BaseExcelImport {
             field.set(entity, excelEntityRef);
         }
         field.setAccessible(false);
-
-    }
-
-    protected void setExcelEntityRefId(ExcelIEEntity<?> excelEntityRef, String id, Field idField) throws InvocationTargetException, IllegalAccessException {
-        idField.setAccessible(true);
-        String typeName = idField.getType().getName();
-        if (typeName.equals(String.class.getTypeName())) {
-            idField.set(excelEntityRef, id);
-            return;
-        } else if (typeName.equals(Long.class.getTypeName())) {
-            idField.set(excelEntityRef, Long.parseLong(id));
-            return;
-        } else if (typeName.equals(Integer.class.getTypeName())) {
-            idField.set(excelEntityRef, Integer.parseInt(id));
-            return;
-        } else if (typeName.equals(UUID.class.getTypeName())) {
-            idField.set(excelEntityRef, UUID.fromString(id));
-            return;
-        } else {
-            defaultMapper(excelEntityRef, id, idField, typeName);
-        }
-        idField.setAccessible(false);
-
-        throw new RuntimeException("Could not set excel entity ref id!");
-    }
-
-    protected void defaultMapper(ExcelIEEntity<?> excelEntityRef, String id, Field idField, String typeName) {
-
-    }
-
-    private boolean isCollectionOfExcelEntities(String typeName,
-                                                String parametrizedTypeName,
-                                                int parametrizedSignStart,
-                                                int parametrizedSignEnd) throws ClassNotFoundException {
-        boolean parametrizedCollection = parametrizedTypeName != null && parametrizedSignEnd != 0 && parametrizedSignStart != 0
-                && (typeName.contains(List.class.getTypeName()) || typeName.contains(Set.class.getTypeName()));
-
-        if (parametrizedCollection) {
-            Class<?> aClass = Class.forName(parametrizedTypeName);
-            return ExcelIEEntity.class.isAssignableFrom(aClass);
-        }
-
-        return false;
     }
 }

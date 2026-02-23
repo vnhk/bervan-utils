@@ -1,6 +1,5 @@
 package com.bervan.ieentities;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.ss.usermodel.Cell;
@@ -11,36 +10,28 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
-public class BaseExcelExport {
+public class BaseExcelExport extends BaseIEExport {
     public static final String LARGE_TEXT_PARTS_SHEET = "LargeTextParts";
     private final Map<String, Integer> columnIndexForField = new HashMap<>();
     private final Map<String, Integer> lastColumnIndexForSheet = new HashMap<>();
-    private final Map<Class<? extends ExcelIEEntity<?>>, List<Object>> processedEntities = new HashMap<>();
     private final int MAX_TEXT_LENGTH = 30000;
-    @Setter
-    private List<String> columnsToExport = new ArrayList<>();
     private Workbook workbook;
 
     public File save(Workbook workbook, String dirPath, String fileName) {
         if (Strings.isBlank(dirPath)) {
             dirPath = ".";
-//            log.warn("Directory path is empty. Workbook will be saved in current directory.");
         }
 
         if (Strings.isBlank(fileName)) {
             fileName = "temp";
-//            log.warn("Filename is empty. Workbook will be saved as temp.xlsx.");
         }
-
 
         File currDir = new File(dirPath);
         String path = currDir.getAbsolutePath();
@@ -60,7 +51,7 @@ public class BaseExcelExport {
     public Workbook exportExcel(List<? extends ExcelIEEntity<?>> entities, Workbook workbook) {
         log.info("Exporting " + entities.size() + " entities.");
         this.workbook = Objects.requireNonNullElseGet(workbook, XSSFWorkbook::new);
-        this.processedEntities.clear();
+        clearProcessed();
         this.columnIndexForField.clear();
         this.lastColumnIndexForSheet.clear();
         buildLargeTextPartsSheet();
@@ -71,13 +62,12 @@ public class BaseExcelExport {
                 throw new RuntimeException("Could not export entities with id = null!");
             }
 
-            if (processedEntities.get(entity.getClass()) != null && processedEntities.get(entity.getClass()).contains(entity.getId())) {
+            if (isAlreadyProcessed(entity)) {
                 log.info("Entity " + entity.getClass().getSimpleName() + " with id = " + entity.getId() + " already exported. Skip.");
                 continue;
             }
 
             appendProcessedEntity(entity);
-
             processEntity(entity);
         }
 
@@ -89,16 +79,6 @@ public class BaseExcelExport {
         Row row = largeTextRefs.createRow(0);
         row.createCell(0).setCellValue("RefKeyPart");
         row.createCell(1).setCellValue("PartValue");
-    }
-
-    private void appendProcessedEntity(ExcelIEEntity<?> entity) {
-        List<Object> processedIds = processedEntities.get(entity.getClass());
-        if (processedIds == null) {
-            processedIds = new ArrayList<>();
-        }
-        processedIds.add(entity.getId());
-
-        processedEntities.put((Class<? extends ExcelIEEntity<?>>) entity.getClass(), processedIds);
     }
 
     protected void processEntity(ExcelIEEntity<?> entity) {
@@ -189,17 +169,14 @@ public class BaseExcelExport {
                 Iterator<?> iterator = ((Collection<?>) value).iterator();
                 Class<?> elementClass = null;
                 while (iterator.hasNext()) {
-
                     Object next = iterator.next();
                     if (elementClass == null) {
                         elementClass = next.getClass();
                     }
-
                     if (elementClass == next.getClass() && next instanceof ExcelIEEntity) {
                         sb.append(((ExcelIEEntity<?>) next).getId());
                         sb.append(",");
                     } else {
-//                        log.warn("Value is a non ExcelEntity collection. Will not be processed. Create custom exporter!");
                         return;
                     }
                 }
@@ -216,12 +193,10 @@ public class BaseExcelExport {
     private String processStringIfLarge(Sheet ownerSheet, Integer columnIndex, Integer rowIndex, Object value) {
         String string = value.toString();
         if (string.length() > MAX_TEXT_LENGTH) {
-//            log.info("Text value is to big to be exported to one cell because of the excel limit.");
             int neededParts = string.length() / MAX_TEXT_LENGTH;
             if (neededParts * MAX_TEXT_LENGTH < string.length()) {
                 neededParts++;
             }
-//            log.info("Text will be divided into " + neededParts + " parts.");
             Sheet sheet = getSheet(LARGE_TEXT_PARTS_SHEET);
             String keyReference = LARGE_TEXT_PARTS_SHEET + "_" + ownerSheet.getSheetName() + "_" + columnIndex + "_" + rowIndex + "_";
             for (int i = 0; i < neededParts; i++) {
@@ -257,28 +232,6 @@ public class BaseExcelExport {
         } else {
             return sheet;
         }
-    }
-
-    protected List<Method> getGettersToExportData(Object object) {
-        Set<String> fields = Arrays.stream(object.getClass().getDeclaredFields())
-                .map(Field::getName).map(String::toLowerCase).collect(Collectors.toSet());
-
-        if (columnsToExport != null && !columnsToExport.isEmpty()) {
-            columnsToExport = columnsToExport.stream().map(String::toLowerCase).collect(Collectors.toList());
-            fields = fields.stream().filter(e -> columnsToExport.contains(e)).collect(Collectors.toSet());
-        }
-
-        Set<String> finalFields = fields;
-        return Arrays.stream(object.getClass().getDeclaredMethods())
-                .filter(e -> !e.isAnnotationPresent(ExcelIgnore.class))
-                .filter(e -> !e.getName().equals("getId"))
-                .filter(e -> e.getName().startsWith("get"))
-                .filter(e -> finalFields.contains(e.getName().replace("get", "").toLowerCase()))
-                .collect(Collectors.toList());
-    }
-
-    protected Object getVal(ExcelIEEntity<?> entity, Method getter) throws Exception {
-        return getter.invoke(entity);
     }
 
     protected Integer getColumnNumber(Sheet sheet, String fieldName) {
