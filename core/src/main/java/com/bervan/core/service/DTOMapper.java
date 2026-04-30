@@ -81,6 +81,12 @@ public class DTOMapper {
         Optional<Field> toFieldWithTheSameName = getToFieldWithTheSameName(toFields, name);
 
         if (toFieldWithTheSameName.isPresent()) {
+
+        } else if (fromField.getAnnotation(FieldCustomMapper.class) != null && !fromField.getAnnotation(FieldCustomMapper.class).targetFieldName().equals("")) {
+            toFieldWithTheSameName = getToFieldWithTheSameName(toFields, fromField.getAnnotation(FieldCustomMapper.class).targetFieldName());
+        }
+
+        if (toFieldWithTheSameName.isPresent()) {
             Field toField = toFieldWithTheSameName.get();
             Class<?> dtoFieldType = toField.getType();
             Optional<? extends CustomMapper> customMapper = findCustomMapper(fromField, fromFieldType, dtoFieldType);

@@ -9,4 +9,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FieldCustomMapper {
     Class<? extends CustomMapper> mapper();
+
+    String targetFieldName() default "";
 }
