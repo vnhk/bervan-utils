@@ -22,6 +22,8 @@ public class DTOMapper {
         this.defaultCustomMappers = defaultCustomMappers;
     }
 
+    private static final ObjectMapper objectMapper = getObjectMapper();
+
     public static ObjectMapper getObjectMapper() {
         if (objectMapper == null) {
             return new ObjectMapper()
@@ -43,7 +45,7 @@ public class DTOMapper {
         }
 
         return dto;
-    }    private static final ObjectMapper objectMapper = getObjectMapper();
+    }
 
     public <ID> BaseModel<ID> map(BaseDTO<ID> dto) throws Exception {
         Class<? extends BaseModel<ID>> dtoTargetClass = dto.dtoTarget();
@@ -56,6 +58,7 @@ public class DTOMapper {
 
         return targetDTO;
     }
+
 
     private BaseDTO initDTO(Class<? extends BaseDTO> dtoClass) {
         try {
@@ -171,14 +174,24 @@ public class DTOMapper {
      */
     private Optional<? extends CustomMapper> findCustomMapper(Field fromField, Class<?> from, Class<?> to) {
         if (fromField.getAnnotation(FieldCustomMapper.class) != null) {
-            try {
-                CustomMapper value = fromField.getAnnotation(FieldCustomMapper.class).mapper()
-                        .getDeclaredConstructor()
-                        .newInstance();
-                return Optional.of(value);
-            } catch (Exception e) {
-                log.error("CustomMapper must have no args public constructor!", e);
-                throw new RuntimeException(e);
+            if (fromField.getAnnotation(FieldCustomMapper.class).mapper() != null) {
+                Optional<? extends DefaultCustomMapper> fieldCustomMapperWithSpringContext = defaultCustomMappers.stream()
+                        .filter(e -> e.getFrom().equals(from) && e.getTo().equals(to))
+                        .filter(e -> e.getClass().equals(fromField.getAnnotation(FieldCustomMapper.class).mapper())).findFirst();
+
+                if (fieldCustomMapperWithSpringContext.isPresent()) {
+                    return Optional.of(fieldCustomMapperWithSpringContext.get());
+                }
+
+                try {
+                    CustomMapper value = fromField.getAnnotation(FieldCustomMapper.class).mapper()
+                            .getDeclaredConstructor()
+                            .newInstance();
+                    return Optional.of(value);
+                } catch (Exception e) {
+                    log.error("CustomMapper must have no args public constructor!", e);
+                    throw new RuntimeException(e);
+                }
             }
         }
 
