@@ -1,17 +1,16 @@
 package com.bervan.core.fieldmapper;
 
-import com.bervan.core.model.BaseDTO;
 import com.bervan.core.model.BaseModel;
-import com.bervan.core.model.FieldCustomMapper;
+import com.bervan.core.model.FieldMapperConfig;
 
 public class C3Book implements BaseModel<Long> {
 
     private Long id;
-    @FieldCustomMapper(mapper = ToUpperCaseMapper.class)
+    @FieldMapperConfig(mapper = ToUpperCaseMapper.class)
     private String name;
     private String summary;
     private String secureField; //no field in DTO
-    @FieldCustomMapper(mapper = BasicInfoC3AuthorMapper.class)
+    @FieldMapperConfig(mapper = BasicInfoC3AuthorMapper.class)
     private C3Author author; //complex object that we want to change using fieldmapper
 
     @Override

@@ -3,14 +3,14 @@ package com.bervan.core.fieldmapper;
 
 import com.bervan.core.model.BaseDTO;
 import com.bervan.core.model.BaseModel;
-import com.bervan.core.model.FieldCustomMapper;
+import com.bervan.core.model.FieldMapperConfig;
 
 
 public class C3BookDTO implements BaseDTO<Long> {
     private Long id;
     private String name;
     private String summary;
-    @FieldCustomMapper(mapper = BasicInfoC3AuthorDTOMapper.class)
+    @FieldMapperConfig(mapper = BasicInfoC3AuthorDTOMapper.class)
     private String author;
 
     @Override

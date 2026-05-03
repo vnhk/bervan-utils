@@ -2,9 +2,11 @@ package com.bervan.core.fieldmapper;
 
 import com.bervan.core.model.DefaultCustomMapper;
 
+import java.lang.reflect.Field;
+
 public class DefaultC3StringToAuthorCustomMapper implements DefaultCustomMapper<String, C3Author> {
     @Override
-    public C3Author map(String c3Author) {
+    public C3Author map(String c3Author, Field fromField, Field toField) {
         return null;
     }
 

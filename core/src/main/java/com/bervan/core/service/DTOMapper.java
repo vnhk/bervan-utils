@@ -10,9 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.lang.reflect.ParameterizedType;
+import java.util.*;
 
 @Slf4j
 public class DTOMapper {
@@ -21,8 +20,6 @@ public class DTOMapper {
     public DTOMapper(List<? extends DefaultCustomMapper> defaultCustomMappers) {
         this.defaultCustomMappers = defaultCustomMappers;
     }
-
-    private static final ObjectMapper objectMapper = getObjectMapper();
 
     public static ObjectMapper getObjectMapper() {
         if (objectMapper == null) {
@@ -34,6 +31,19 @@ public class DTOMapper {
         } else {
             return objectMapper;
         }
+    }
+
+    private static boolean isFieldMapperConfigAnnotation(Object from, Object to, Field fromField, Field[] toFields) {
+        if (from instanceof BaseDTO) {
+            return fromField.getAnnotation(FieldMapperConfig.class) != null && !(fromField.getAnnotation(FieldMapperConfig.class).targetFieldNames().length == 0);
+        }
+
+        if (from instanceof BaseModel) {
+            return Arrays.stream(toFields).filter(e -> e.getAnnotation(FieldMapperConfig.class) != null)
+                    .anyMatch(e -> e.getAnnotation(FieldMapperConfig.class).targetFieldNames().length != 0);
+        }
+
+        return false;
     }
 
     public <ID> BaseDTO<ID> map(BaseModel<ID> dtoTarget, Class<? extends BaseDTO<ID>> dtoClass) throws Exception {
@@ -58,7 +68,6 @@ public class DTOMapper {
 
         return targetDTO;
     }
-
 
     private BaseDTO initDTO(Class<? extends BaseDTO> dtoClass) {
         try {
@@ -85,26 +94,103 @@ public class DTOMapper {
 
         if (toFieldWithTheSameName.isPresent()) {
 
-        } else if (fromField.getAnnotation(FieldCustomMapper.class) != null && !fromField.getAnnotation(FieldCustomMapper.class).targetFieldName().equals("")) {
-            toFieldWithTheSameName = getToFieldWithTheSameName(toFields, fromField.getAnnotation(FieldCustomMapper.class).targetFieldName());
+        } else {
+            boolean hasFieldMapperConfigAnnotation = isFieldMapperConfigAnnotation(from, to, fromField, toFields);
+            if (hasFieldMapperConfigAnnotation) {
+                toFieldWithTheSameName = getTargetField(from, to, fromField, toFields);
+            }
         }
 
         if (toFieldWithTheSameName.isPresent()) {
             Field toField = toFieldWithTheSameName.get();
-            Class<?> dtoFieldType = toField.getType();
-            Optional<? extends CustomMapper> customMapper = findCustomMapper(fromField, fromFieldType, dtoFieldType);
+            Class<?> fieldType = toField.getType();
+            Optional<? extends CustomMapper> customMapper = findCustomMapper(from, to, fromField, toField, fromFieldType, fieldType);
             Object value = simpleReceivingValue(from, fromField);
             if (shouldBeMappedWithCustomMapper(customMapper, value)) {
-                value = customMapper.get().map(value);
+                value = customMapper.get().map(value, fromField, toField);
             } else if (shouldExecuteMap(from, fromField, toField)) {
-                if (value instanceof BaseDTO) {
-                    value = map(((BaseDTO<?>) value));
+                if (value instanceof Collection<?>) {
+                    value = executeMapForCollection(value, toField);
                 } else {
-                    value = map(((BaseModel) value), ((Class<? extends BaseDTO<ID>>) toField.getType()));
+                    value = executeMapForSingleObject(value, toField);
                 }
             }
+            setOrAddValues(to, toField, value);
+        }
+    }
 
-            setValue(to, toField, value);
+
+    private void setOrAddValues(Object to, Field toField, Object value) throws IllegalAccessException {
+        toField.setAccessible(true);
+        Object o = toField.get(to);
+        if (o instanceof Collection) {
+            if (value instanceof Collection) {
+                ((Collection) o).addAll((Collection) value);
+            } else {
+                ((Collection) o).add(value);
+            }
+        } else {
+            toField.set(to, value);
+        }
+    }
+
+    private <ID> Object executeMapForSingleObject(Object value, Field toField) throws Exception {
+        if (value instanceof BaseDTO) {
+            value = map((BaseDTO<?>) value);
+        } else {
+            value = map(
+                    (BaseModel) value,
+                    (Class<? extends BaseDTO<ID>>) toField.getType()
+            );
+        }
+        return value;
+    }
+
+    private <ID> Object executeMapForCollection(Object value, Field toField) throws Exception {
+        Collection<?> sourceCollection = (Collection<?>) value;
+
+        Collection<Object> targetCollection =
+                value instanceof Set ? new HashSet<>() : new ArrayList<>();
+
+        Class<?> targetElementType = getFieldType(toField);
+
+        for (Object element : sourceCollection) {
+            if (element == null) continue;
+
+            Object mappedElement;
+
+            if (element instanceof BaseDTO) {
+                mappedElement = map((BaseDTO<?>) element);
+            } else {
+                mappedElement = map(
+                        (BaseModel) element,
+                        (Class<? extends BaseDTO<ID>>) targetElementType
+                );
+            }
+
+            targetCollection.add(mappedElement);
+        }
+
+        value = targetCollection;
+        return value;
+    }
+
+    private Optional<Field> getTargetField(Object from, Object to, Field fromField, Field[] toFields) {
+        if (from instanceof BaseDTO) {
+            String[] names = fromField.getAnnotation(FieldMapperConfig.class).targetFieldNames();
+
+            Optional<Field> toFieldWithTheSameName = Optional.empty();
+            for (String supportedName : names) {
+                toFieldWithTheSameName = getToFieldWithTheSameName(toFields, supportedName);
+                if (toFieldWithTheSameName.isPresent()) {
+                    break;
+                }
+            }
+            return toFieldWithTheSameName;
+        } else {
+            return Arrays.stream(toFields).filter(e -> e.getAnnotation(FieldMapperConfig.class) != null)
+                    .filter(e -> Arrays.stream(e.getAnnotation(FieldMapperConfig.class).targetFieldNames()).anyMatch(e1 -> e1.equals(fromField.getName())))
+                    .findFirst();
         }
     }
 
@@ -125,31 +211,53 @@ public class DTOMapper {
      * @return true/false
      * @throws IllegalAccessException
      */
-    private boolean shouldExecuteMap(Object fromObj, Field fromField, Field toField) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
-        if (BaseModel.class.isAssignableFrom(fromField.getType()) && BaseDTO.class.isAssignableFrom(toField.getType())) {
-            return shouldBeMappedToDTO(fromObj, fromField, toField);
-        } else if (BaseDTO.class.isAssignableFrom(fromField.getType()) && BaseModel.class.isAssignableFrom(toField.getType())) {
-            return shouldBeMappedToDTOTarget(fromObj, fromField, toField);
+    private boolean shouldExecuteMap(Object fromObj, Field fromField, Field toField)
+            throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
+
+        Class<?> fromType = getFieldType(fromField);
+        Class<?> toType = getFieldType(toField);
+
+        if (BaseModel.class.isAssignableFrom(fromType) && BaseDTO.class.isAssignableFrom(toType)) {
+            return shouldBeMappedToDTO(fromObj, fromField, toField, fromType, toType);
+        } else if (BaseDTO.class.isAssignableFrom(fromType) && BaseModel.class.isAssignableFrom(toType)) {
+            return shouldBeMappedToDTOTarget(fromObj, fromField, toField, fromType, toType);
         }
 
         return false;
     }
 
-    private boolean shouldBeMappedToDTO(Object fromObj, Field fromField, Field toField) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
-        fromField.setAccessible(true);
-        BaseModel from = ((BaseModel) fromField.get(fromObj));
-        fromField.setAccessible(false);
+    private boolean shouldBeMappedToDTOTarget(Object fromObj, Field fromField, Field toField,
+                                              Class<?> fromType, Class<?> toType)
+            throws IllegalAccessException {
 
-        return from != null && ((BaseDTO) toField.getType().getConstructor().newInstance()).dtoTarget().equals(from.getClass());
+        fromField.setAccessible(true);
+        Object value = fromField.get(fromObj);
+        fromField.setAccessible(false);
+        if (value == null) return false;
+        BaseDTO dto = (BaseDTO) value;
+        return toType.equals(dto.dtoTarget());
     }
 
-    private boolean shouldBeMappedToDTOTarget(Object fromObj, Field fromField, Field toField) throws IllegalAccessException {
-        fromField.setAccessible(true);
-        BaseDTO from = ((BaseDTO) fromField.get(fromObj));
-        fromField.setAccessible(false);
+    private Class<?> getFieldType(Field field) {
+        // If it's a collection, extract generic type
+        if (Collection.class.isAssignableFrom(field.getType())) {
+            ParameterizedType type = (ParameterizedType) field.getGenericType();
+            return (Class<?>) type.getActualTypeArguments()[0];
+        }
 
-        return from != null && toField.getAnnotatedType().getType().equals(from.dtoTarget());
+        return field.getType();
     }
+
+    private boolean shouldBeMappedToDTO(Object fromObj, Field fromField, Field toField,
+                                        Class<?> fromType, Class<?> toType)
+            throws IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
+        fromField.setAccessible(true);
+        Object value = fromField.get(fromObj);
+        fromField.setAccessible(false);
+        if (value == null) return false;
+        BaseDTO dtoInstance = (BaseDTO) toType.getConstructor().newInstance();
+        return dtoInstance.dtoTarget().equals(fromType);
+    }    private static final ObjectMapper objectMapper = getObjectMapper();
 
     private void setValue(Object to, Field toField, Object value) throws IllegalAccessException {
         toField.setAccessible(true);
@@ -165,26 +273,39 @@ public class DTOMapper {
     }
 
     /**
+     * @param fromObj
+     * @param toObj
      * @param fromField Field in FROM object
+     * @param toField
      * @param from      FROM field class
      * @param to        TO field class
      *                  Method first tries to find @FieldCustomMapper on the fromField if not found then checks whether
      *                  in the application was created any CustomMapper that can be user for mapping FROM to TO.
      * @return custom mapper if found
      */
-    private Optional<? extends CustomMapper> findCustomMapper(Field fromField, Class<?> from, Class<?> to) {
-        if (fromField.getAnnotation(FieldCustomMapper.class) != null) {
-            if (fromField.getAnnotation(FieldCustomMapper.class).mapper() != null) {
+    private Optional<? extends CustomMapper> findCustomMapper(Object fromObj, Object toObj, Field fromField, Field toField, Class<?> from, Class<?> to) {
+        Field field;
+        if (fromObj instanceof BaseDTO) {
+            field = fromField;
+        } else {
+            field = toField;
+        }
+        if (field.getAnnotation(FieldMapperConfig.class) != null) {
+            if (field.getAnnotation(FieldMapperConfig.class).mapper() != null) {
                 Optional<? extends DefaultCustomMapper> fieldCustomMapperWithSpringContext = defaultCustomMappers.stream()
                         .filter(e -> e.getFrom().equals(from) && e.getTo().equals(to))
-                        .filter(e -> e.getClass().equals(fromField.getAnnotation(FieldCustomMapper.class).mapper())).findFirst();
+                        .filter(e -> e.getClass().equals(field.getAnnotation(FieldMapperConfig.class).mapper())).findFirst();
 
                 if (fieldCustomMapperWithSpringContext.isPresent()) {
                     return Optional.of(fieldCustomMapperWithSpringContext.get());
                 }
 
                 try {
-                    CustomMapper value = fromField.getAnnotation(FieldCustomMapper.class).mapper()
+                    Class<? extends CustomMapper> mapper = field.getAnnotation(FieldMapperConfig.class).mapper();
+                    if (mapper.getName() == CustomMapper.class.getName()) {
+                        return Optional.empty();
+                    }
+                    CustomMapper value = mapper
                             .getDeclaredConstructor()
                             .newInstance();
                     return Optional.of(value);

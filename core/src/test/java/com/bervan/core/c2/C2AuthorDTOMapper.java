@@ -2,9 +2,11 @@ package com.bervan.core.c2;
 
 import com.bervan.core.model.DefaultCustomMapper;
 
+import java.lang.reflect.Field;
+
 public class C2AuthorDTOMapper implements DefaultCustomMapper<Long, C2Author> {
     @Override
-    public C2Author map(Long id) {
+    public C2Author map(Long id, Field fromField, Field toField) {
         C2Author author = new C2Author();
         author.setId(id);
         return author;

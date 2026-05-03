@@ -5,6 +5,10 @@ import com.bervan.core.c1.AuthorDTO;
 import com.bervan.core.c1.Book;
 import com.bervan.core.c1.BookDTO;
 import com.bervan.core.c2.*;
+import com.bervan.core.c3.Task;
+import com.bervan.core.c3.TaskDto;
+import com.bervan.core.c3.TaskRelation;
+import com.bervan.core.c3.TaskRelationType;
 import com.bervan.core.fieldmapper.*;
 import com.bervan.core.model.BaseDTO;
 import com.bervan.core.model.BaseModel;
@@ -16,6 +20,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -346,5 +352,28 @@ class ToDTOMapperTest {
         String authorDetails = ((C3BookDTO) map).getAuthor();
 
         assertEquals(authorDetails, "Author with id = 150: John Snow");
+    }
+
+    @Test
+    public void mapTaskWithRelationsToDto() throws Exception {
+        Task task1 = new Task();
+        task1.setId(UUID.fromString("12345678-1234-1234-1234-123456789012"));
+        task1.setName("Task 1");
+
+        Task task2 = new Task();
+        task2.setId(UUID.fromString("22345678-1234-1234-1234-123456789012"));
+        task2.setName("Task 2");
+
+        List<TaskRelation> childRelations = new ArrayList<>();
+        task1.setChildRelations(childRelations);
+        List<TaskRelation> parentRelations = new ArrayList<>();
+        task1.setParentRelations(parentRelations);
+
+        childRelations.add(new TaskRelation(UUID.nameUUIDFromBytes("UUID_TASK_RELATION_1".getBytes()),task1, task2, TaskRelationType.CHILD_IS_PART_OF));
+        parentRelations.add(new TaskRelation(UUID.nameUUIDFromBytes("UUID_TASK_RELATION_2".getBytes()),task2, task1, TaskRelationType.CHILD_IS_PART_OF));
+
+        TaskDto map = (TaskDto) dtoMapper.map(task1, TaskDto.class);
+
+        System.out.println(map);
     }
 }
