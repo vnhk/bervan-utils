@@ -132,7 +132,7 @@ public class DTOMapper {
             Field toField = toFieldWithTheSameName.get();
             Class<?> fieldType = toField.getType();
             Optional<? extends CustomMapper> customMapper = findCustomMapper(from, to, fromField, toField, fromFieldType, fieldType);
-            Object value = simpleReceivingValue(from, fromField);
+            Object value = receiveValue(from, fromField);
             if (shouldBeMappedWithCustomMapper(customMapper, value)) {
                 value = customMapper.get().map(value, fromField, toField);
             } else if (shouldExecuteMap(from, fromField, toField)) {
@@ -200,6 +200,29 @@ public class DTOMapper {
 
         value = targetCollection;
         return value;
+    }
+
+    // Read value using dot path like "project.name"
+    private Object getNestedValue(Object source, String path) throws IllegalAccessException {
+        String[] parts = path.split("\\.");
+        Object current = source;
+
+        for (String part : parts) {
+            if (current == null) {
+                return null;
+            }
+
+            Field field = Arrays.stream(current.getClass().getDeclaredFields())
+                    .filter(f -> f.getName().equals(part))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Field not found: " + part));
+
+            field.setAccessible(true);
+            current = field.get(current);
+            field.setAccessible(false);
+        }
+
+        return current;
     }
 
     private Optional<Field> getTargetField(Object from, Object to, Field fromField, Field[] toFields) {
@@ -292,12 +315,32 @@ public class DTOMapper {
         toField.setAccessible(false);
     }
 
+    private Object receiveValue(Object from, Field fromField) throws IllegalAccessException {
+        Object value;
+
+        if (fromField.getAnnotation(FieldMapperConfig.class) != null) {
+            String[] paths = fromField.getAnnotation(FieldMapperConfig.class).targetFieldNames();
+            if (paths.length > 0 && paths[0].contains(".")) {
+                // Support nested path like "project.name"
+                value = getNestedValue(from, paths[0]);
+            } else {
+                value = simpleReceivingValue(from, fromField);
+            }
+
+        } else {
+            value = simpleReceivingValue(from, fromField);
+        }
+
+        return value;
+    }
+
+
     private Object simpleReceivingValue(Object from, Field declaredField) throws IllegalAccessException {
         declaredField.setAccessible(true);
         Object value = declaredField.get(from);
         declaredField.setAccessible(false);
         return value;
-    }    private static final ObjectMapper objectMapper = getObjectMapper();
+    }
 
     /**
      * @param fromObj
@@ -344,7 +387,7 @@ public class DTOMapper {
         }
 
         return defaultCustomMappers.stream().filter(e -> e.getFrom().equals(from) && e.getTo().equals(to)).findFirst();
-    }
+    }    private static final ObjectMapper objectMapper = getObjectMapper();
 
 
 
