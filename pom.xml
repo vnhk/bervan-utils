@@ -10,10 +10,15 @@
     <groupId>com.bervan</groupId>
     <artifactId>utils</artifactId>
     <version>latest</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
+    <name>bervan-utils</name>
 
-    <name>Utils</name>
-    <url>http://maven.apache.org</url>
+    <modules>
+        <module>core</module>
+        <module>history-tables-core</module>
+        <module>ie-entities</module>
+<!--        <module>app</module>-->
+    </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
