@@ -16,9 +16,13 @@ import java.util.*;
 @Slf4j
 public class DTOMapper {
     private final List<? extends DefaultCustomMapper> defaultCustomMappers;
+    private final List<? extends PreMapper> preMappers;
+    private final List<? extends PostMapper> postMappers;
 
-    public DTOMapper(List<? extends DefaultCustomMapper> defaultCustomMappers) {
+    public DTOMapper(List<? extends DefaultCustomMapper> defaultCustomMappers, List<? extends PreMapper> preMappers, List<? extends PostMapper> postMappers) {
         this.defaultCustomMappers = defaultCustomMappers;
+        this.preMappers = preMappers;
+        this.postMappers = postMappers;
     }
 
     public static ObjectMapper getObjectMapper() {
@@ -48,11 +52,22 @@ public class DTOMapper {
 
     public <ID> BaseDTO<ID> map(BaseModel<ID> dtoTarget, Class<? extends BaseDTO<ID>> dtoClass) throws Exception {
         BaseDTO<ID> dto = initDTO(dtoClass);
+        preMappers.forEach(e -> {
+            if (e.isApplicable(dtoTarget, dto)) {
+                e.map(dtoTarget, dto);
+            }
+        });
 
         Field[] dtoFields = dtoClass.getDeclaredFields();
         for (Field fromField : dtoTarget.getClass().getDeclaredFields()) {
             processField(dtoTarget, dto, dtoFields, fromField);
         }
+
+        postMappers.forEach(e -> {
+            if (e.isApplicable(dtoTarget, dto)) {
+                e.map(dtoTarget, dto);
+            }
+        });
 
         return dto;
     }
@@ -61,10 +76,22 @@ public class DTOMapper {
         Class<? extends BaseModel<ID>> dtoTargetClass = dto.dtoTarget();
         BaseModel<ID> targetDTO = initTargetDTO(dtoTargetClass);
 
+        preMappers.forEach(e -> {
+            if (e.isApplicable(dto, targetDTO)) {
+                e.map(dto, targetDTO);
+            }
+        });
+
         Field[] dtoTargetFields = dtoTargetClass.getDeclaredFields();
         for (Field fromField : dto.getClass().getDeclaredFields()) {
             processField(dto, targetDTO, dtoTargetFields, fromField);
         }
+
+        postMappers.forEach(e -> {
+            if (e.isApplicable(dto, targetDTO)) {
+                e.map(dto, targetDTO);
+            }
+        });
 
         return targetDTO;
     }
@@ -257,7 +284,7 @@ public class DTOMapper {
         if (value == null) return false;
         BaseDTO dtoInstance = (BaseDTO) toType.getConstructor().newInstance();
         return dtoInstance.dtoTarget().equals(fromType);
-    }    private static final ObjectMapper objectMapper = getObjectMapper();
+    }
 
     private void setValue(Object to, Field toField, Object value) throws IllegalAccessException {
         toField.setAccessible(true);
@@ -270,7 +297,7 @@ public class DTOMapper {
         Object value = declaredField.get(from);
         declaredField.setAccessible(false);
         return value;
-    }
+    }    private static final ObjectMapper objectMapper = getObjectMapper();
 
     /**
      * @param fromObj

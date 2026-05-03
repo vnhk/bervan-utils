@@ -5,10 +5,7 @@ import com.bervan.core.c1.AuthorDTO;
 import com.bervan.core.c1.Book;
 import com.bervan.core.c1.BookDTO;
 import com.bervan.core.c2.*;
-import com.bervan.core.c3.Task;
-import com.bervan.core.c3.TaskDto;
-import com.bervan.core.c3.TaskRelation;
-import com.bervan.core.c3.TaskRelationType;
+import com.bervan.core.c3.*;
 import com.bervan.core.fieldmapper.*;
 import com.bervan.core.model.BaseDTO;
 import com.bervan.core.model.BaseModel;
@@ -32,7 +29,7 @@ class ToDTOMapperTest {
 
     @BeforeEach
     public void setUp() {
-        dtoMapper = new DTOMapper(new ArrayList<>());
+        dtoMapper = new DTOMapper(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
     }
 
     @Test
@@ -208,7 +205,7 @@ class ToDTOMapperTest {
     public void mapToDTOUsingCustomMapperWhenValueToBeMappedIsNull() throws Exception {
         C2Author author = null;
 
-        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorMapper()), new ArrayList<>(), new ArrayList<>());
 
         C2Book book = C2Book.C2BookBuilder.aC2Book()
                 .id(null)
@@ -234,7 +231,7 @@ class ToDTOMapperTest {
     public void mapToTargetDTOUsingCustomMapperWhenValueToBeMappedIsNull() throws Exception {
         C2AuthorDTO author = null;
 
-        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorDTOMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorDTOMapper()), new ArrayList<>(), new ArrayList<>());
 
         C2BookDTO book = C2BookDTO.C2BookDTOBuilder.aC2BookDTO()
                 .id(null)
@@ -257,7 +254,7 @@ class ToDTOMapperTest {
 
     @Test
     public void mapToTargetDTOUsingCustomMapperWhenValueToBeMapped() throws Exception {
-        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorDTOMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorDTOMapper()), new ArrayList<>(), new ArrayList<>());
 
         C2BookDTO book = C2BookDTO.C2BookDTOBuilder.aC2BookDTO()
                 .id(null)
@@ -283,7 +280,7 @@ class ToDTOMapperTest {
     public void mapUsingCustomMapperWhenValueToBeMapped() throws Exception {
         C2Author author = C2Author.C2AuthorBuilder.aC2Author().id(150L).firstName("test").lastName("test").build();
 
-        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new C2AuthorMapper()), new ArrayList<>(), new ArrayList<>());
 
         C2Book book = C2Book.C2BookBuilder.aC2Book()
                 .id(null)
@@ -307,7 +304,7 @@ class ToDTOMapperTest {
 
     @Test
     public void mapToTargetDTOUsingFieldMapperWithExistingDefaultMapper() throws Exception {
-        dtoMapper = new DTOMapper(Arrays.asList(new DefaultC3AuthorCustomMapper(), new DefaultC3StringToAuthorCustomMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new DefaultC3AuthorCustomMapper(), new DefaultC3StringToAuthorCustomMapper()), new ArrayList<>(), new ArrayList<>());
 
         C3BookDTO book = C3BookDTO.C3BookDTOBuilder.aC3BookDTO()
                 .id(null)
@@ -332,7 +329,7 @@ class ToDTOMapperTest {
     public void mapToDTOUsingFieldMapperWithExistingDefaultMapper() throws Exception {
         C3Author author = C3Author.C3AuthorBuilder.aC3Author().id(150L).firstName("John").lastName("Snow").build();
 
-        dtoMapper = new DTOMapper(Arrays.asList(new DefaultC3AuthorCustomMapper(), new DefaultC3StringToAuthorCustomMapper()));
+        dtoMapper = new DTOMapper(Arrays.asList(new DefaultC3AuthorCustomMapper(), new DefaultC3StringToAuthorCustomMapper()), new ArrayList<>(), new ArrayList<>());
 
         C3Book book = C3Book.C3BookBuilder.aC3Book()
                 .id(null)
@@ -356,6 +353,8 @@ class ToDTOMapperTest {
 
     @Test
     public void mapTaskWithRelationsToDto() throws Exception {
+        dtoMapper = new DTOMapper(new ArrayList<>(), new ArrayList<>(), Arrays.asList(new DirectionCustomMapper()));
+
         Task task1 = new Task();
         task1.setId(UUID.fromString("12345678-1234-1234-1234-123456789012"));
         task1.setName("Task 1");
@@ -369,8 +368,8 @@ class ToDTOMapperTest {
         List<TaskRelation> parentRelations = new ArrayList<>();
         task1.setParentRelations(parentRelations);
 
-        childRelations.add(new TaskRelation(UUID.nameUUIDFromBytes("UUID_TASK_RELATION_1".getBytes()),task1, task2, TaskRelationType.CHILD_IS_PART_OF));
-        parentRelations.add(new TaskRelation(UUID.nameUUIDFromBytes("UUID_TASK_RELATION_2".getBytes()),task2, task1, TaskRelationType.CHILD_IS_PART_OF));
+        childRelations.add(new TaskRelation(UUID.nameUUIDFromBytes("UUID_TASK_RELATION_1".getBytes()), task1, task2, TaskRelationType.CHILD_IS_PART_OF));
+        parentRelations.add(new TaskRelation(UUID.nameUUIDFromBytes("UUID_TASK_RELATION_2".getBytes()), task2, task1, TaskRelationType.CHILD_IS_PART_OF));
 
         TaskDto map = (TaskDto) dtoMapper.map(task1, TaskDto.class);
 

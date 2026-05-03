@@ -2,6 +2,7 @@ package com.bervan.core.c3;
 
 import com.bervan.core.model.BaseDTO;
 import com.bervan.core.model.BaseModel;
+import com.bervan.core.model.PostCustomMappers;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@PostCustomMappers(mappers = {DirectionCustomMapper.class})
 public class TaskRelationDto implements BaseDTO<UUID> {
     private UUID id;
     private Task parent;
