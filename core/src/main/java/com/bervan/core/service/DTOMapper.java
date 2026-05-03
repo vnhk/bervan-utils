@@ -63,6 +63,22 @@ public class DTOMapper {
             processField(dtoTarget, dto, dtoFields, fromField);
         }
 
+        for (Field dtoField : dtoFields) {
+            FieldMapperConfig config = dtoField.getAnnotation(FieldMapperConfig.class);
+            if (config == null) continue;
+            for (String path : config.targetFieldNames()) {
+                if (path.contains(".")) {
+                    try {
+                        Object nestedValue = getNestedValue(dtoTarget, path);
+                        setValue(dto, dtoField, nestedValue);
+                        break;
+                    } catch (Exception e) {
+                        log.warn("Could not map nested path '{}' from {}: {}", path, dtoTarget.getClass().getSimpleName(), e.getMessage());
+                    }
+                }
+            }
+        }
+
         postMappers.forEach(e -> {
             if (e.isApplicable(dtoTarget, dto)) {
                 e.map(dtoTarget, dto);
@@ -117,19 +133,20 @@ public class DTOMapper {
     private <ID> void processField(Object from, Object to, Field[] toFields, Field fromField) throws Exception {
         String name = fromField.getName();
         Class<?> fromFieldType = fromField.getType();
-        Optional<Field> toFieldWithTheSameName = getToFieldWithTheSameName(toFields, name);
+        List<Field> toFieldsWithTheSameName = getToFieldsWithTheSameName(toFields, name);
 
-        if (toFieldWithTheSameName.isPresent()) {
+        if (toFieldsWithTheSameName.size() != 0) {
 
         } else {
             boolean hasFieldMapperConfigAnnotation = isFieldMapperConfigAnnotation(from, to, fromField, toFields);
             if (hasFieldMapperConfigAnnotation) {
-                toFieldWithTheSameName = getTargetField(from, to, fromField, toFields);
+                toFieldsWithTheSameName = getTargetFields(from, to, fromField, toFields);
             }
         }
 
-        if (toFieldWithTheSameName.isPresent()) {
-            Field toField = toFieldWithTheSameName.get();
+
+        for (Field field : toFieldsWithTheSameName) {
+            Field toField = field;
             Class<?> fieldType = toField.getType();
             Optional<? extends CustomMapper> customMapper = findCustomMapper(from, to, fromField, toField, fromFieldType, fieldType);
             Object value = receiveValue(from, fromField);
@@ -225,14 +242,14 @@ public class DTOMapper {
         return current;
     }
 
-    private Optional<Field> getTargetField(Object from, Object to, Field fromField, Field[] toFields) {
+    private List<Field> getTargetFields(Object from, Object to, Field fromField, Field[] toFields) {
         if (from instanceof BaseDTO) {
             String[] names = fromField.getAnnotation(FieldMapperConfig.class).targetFieldNames();
 
-            Optional<Field> toFieldWithTheSameName = Optional.empty();
+            List<Field> toFieldWithTheSameName = new ArrayList<>();
             for (String supportedName : names) {
-                toFieldWithTheSameName = getToFieldWithTheSameName(toFields, supportedName);
-                if (toFieldWithTheSameName.isPresent()) {
+                toFieldWithTheSameName = getToFieldsWithTheSameName(toFields, supportedName);
+                if (toFieldWithTheSameName.size() != 0) {
                     break;
                 }
             }
@@ -240,7 +257,7 @@ public class DTOMapper {
         } else {
             return Arrays.stream(toFields).filter(e -> e.getAnnotation(FieldMapperConfig.class) != null)
                     .filter(e -> Arrays.stream(e.getAnnotation(FieldMapperConfig.class).targetFieldNames()).anyMatch(e1 -> e1.equals(fromField.getName())))
-                    .findFirst();
+                    .toList();
         }
     }
 
@@ -248,8 +265,8 @@ public class DTOMapper {
         return customMapper.isPresent() && value != null;
     }
 
-    private Optional<Field> getToFieldWithTheSameName(Field[] dtoFields, String name) {
-        return Arrays.stream(dtoFields).filter(e -> e.getName().equals(name)).findFirst();
+    private List<Field> getToFieldsWithTheSameName(Field[] dtoFields, String name) {
+        return Arrays.stream(dtoFields).filter(e -> e.getName().equals(name)).toList();
     }
 
     /**
@@ -316,22 +333,7 @@ public class DTOMapper {
     }
 
     private Object receiveValue(Object from, Field fromField) throws IllegalAccessException {
-        Object value;
-
-        if (fromField.getAnnotation(FieldMapperConfig.class) != null) {
-            String[] paths = fromField.getAnnotation(FieldMapperConfig.class).targetFieldNames();
-            if (paths.length > 0 && paths[0].contains(".")) {
-                // Support nested path like "project.name"
-                value = getNestedValue(from, paths[0]);
-            } else {
-                value = simpleReceivingValue(from, fromField);
-            }
-
-        } else {
-            value = simpleReceivingValue(from, fromField);
-        }
-
-        return value;
+        return simpleReceivingValue(from, fromField);
     }
 
 
@@ -354,12 +356,7 @@ public class DTOMapper {
      * @return custom mapper if found
      */
     private Optional<? extends CustomMapper> findCustomMapper(Object fromObj, Object toObj, Field fromField, Field toField, Class<?> from, Class<?> to) {
-        Field field;
-        if (fromObj instanceof BaseDTO) {
-            field = fromField;
-        } else {
-            field = toField;
-        }
+        Field field = fromField;
         if (field.getAnnotation(FieldMapperConfig.class) != null) {
             if (field.getAnnotation(FieldMapperConfig.class).mapper() != null) {
                 Optional<? extends DefaultCustomMapper> fieldCustomMapperWithSpringContext = defaultCustomMappers.stream()
@@ -387,9 +384,9 @@ public class DTOMapper {
         }
 
         return defaultCustomMappers.stream().filter(e -> e.getFrom().equals(from) && e.getTo().equals(to)).findFirst();
-    }    private static final ObjectMapper objectMapper = getObjectMapper();
+    }
 
-
+    private static final ObjectMapper objectMapper = getObjectMapper();
 
 
 }

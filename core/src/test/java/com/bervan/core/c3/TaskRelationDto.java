@@ -16,8 +16,8 @@ public class TaskRelationDto implements BaseDTO<UUID> {
     private UUID id;
     private TaskDto parent;
     private TaskDto child;
-//    @FieldMapperConfig(targetFieldNames = {"project.name"})
-    private String projectName;
+    @FieldMapperConfig(targetFieldNames = {"parent.name"})
+    private String taskParentName;
     private TaskRelationType type;
     private String direction;
 

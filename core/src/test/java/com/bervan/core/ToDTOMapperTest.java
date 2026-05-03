@@ -363,16 +363,32 @@ class ToDTOMapperTest {
         task2.setId(UUID.fromString("22345678-1234-1234-1234-123456789012"));
         task2.setName("Task 2");
 
+        // Parent/child references inside relations must not carry back-populated collections
+        // to avoid circular mapping (task1 → relation → task1 → relation → ...)
+        Task task1Ref = new Task();
+        task1Ref.setId(task1.getId());
+        task1Ref.setName(task1.getName());
+
+        Task task2Ref = new Task();
+        task2Ref.setId(task2.getId());
+        task2Ref.setName(task2.getName());
+
         List<TaskRelation> childRelations = new ArrayList<>();
         task1.setChildRelations(childRelations);
         List<TaskRelation> parentRelations = new ArrayList<>();
         task1.setParentRelations(parentRelations);
 
-        childRelations.add(new TaskRelation(UUID.nameUUIDFromBytes("UUID_TASK_RELATION_1".getBytes()), task1, task2, TaskRelationType.CHILD_IS_PART_OF));
-        parentRelations.add(new TaskRelation(UUID.nameUUIDFromBytes("UUID_TASK_RELATION_2".getBytes()), task2, task1, TaskRelationType.CHILD_IS_PART_OF));
+        childRelations.add(new TaskRelation(UUID.nameUUIDFromBytes("UUID_TASK_RELATION_1".getBytes()), task1Ref, task2Ref, TaskRelationType.CHILD_IS_PART_OF));
+        parentRelations.add(new TaskRelation(UUID.nameUUIDFromBytes("UUID_TASK_RELATION_2".getBytes()), task2Ref, task1Ref, TaskRelationType.CHILD_IS_PART_OF));
 
         TaskDto map = (TaskDto) dtoMapper.map(task1, TaskDto.class);
 
-        System.out.println(map);
+        assertNotNull(map);
+        assertEquals(2, map.getRelations().size());
+        // taskParentName should be populated from the nested model path parent.name
+        TaskRelationDto childRelationDto = map.getRelations().stream()
+                .filter(r -> r.getId().equals(UUID.nameUUIDFromBytes("UUID_TASK_RELATION_1".getBytes())))
+                .findFirst().orElseThrow();
+        assertEquals("Task 1", childRelationDto.getTaskParentName());
     }
 }
