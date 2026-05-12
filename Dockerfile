@@ -4,9 +4,9 @@ WORKDIR /app
 
 COPY . .
 
-RUN mvn -f='./core' install -DskipTests
-RUN mvn -f='./history-tables-core' install -DskipTests
-RUN mvn -f='./ie-entities' install -DskipTests
+# Single reactor build installs parent POM (com.bervan:utils) to ~/.m2. Per-module -f builds do not,
+# so later modules fail resolving the parent when reading com.bervan:core from the local repo.
+RUN mvn clean install -DskipTests
 
 FROM maven:3.8.5-openjdk-17 AS bervan-utils-jars
 
