@@ -13,6 +13,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
 
+import static org.springframework.util.StringUtils.capitalize;
+
 @Slf4j
 public class DTOMapper {
     private final List<? extends DefaultCustomMapper> defaultCustomMappers;
@@ -338,9 +340,19 @@ public class DTOMapper {
 
 
     private Object simpleReceivingValue(Object from, Field declaredField) throws IllegalAccessException {
-        declaredField.setAccessible(true);
-        Object value = declaredField.get(from);
-        declaredField.setAccessible(false);
+        Object value = null;
+        try {
+            value = from.getClass().getMethod("get" + capitalize(declaredField.getName())).invoke(from);
+        } catch (Exception e) {
+            try {
+                value = from.getClass().getMethod("is" + capitalize(declaredField.getName())).invoke(from);
+            } catch (Exception ignored) {
+                declaredField.setAccessible(true);
+                value = declaredField.get(from);
+                declaredField.setAccessible(false);
+
+            }
+        }
         return value;
     }
 
